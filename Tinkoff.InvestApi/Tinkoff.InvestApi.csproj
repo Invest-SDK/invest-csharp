@@ -8,11 +8,11 @@
         <RootNamespace>Tinkoff.InvestApi</RootNamespace>
         <AssemblyName>Tinkoff.InvestApi</AssemblyName>
         <PackageId>Tinkoff.InvestApi</PackageId>
-        <PackageVersion>0.6.17</PackageVersion>
+        <PackageVersion>0.6.18</PackageVersion>
         <Company>Tinkoff</Company>
         <Description>SDK для работы с grpc-интерфейсом торговой платформы Тинькофф Инвестиции</Description>
         <PackageProjectUrl>https://www.tinkoff.ru/invest/</PackageProjectUrl>
-        <RepositoryUrl>https://github.com/RussianInvestments/invest-api-csharp-sdk</RepositoryUrl>
+        <RepositoryUrl>https://opensource.tbank.ru/invest/invest-csharp</RepositoryUrl>
         <GenerateDocumentationFile>true</GenerateDocumentationFile>
     </PropertyGroup>
 

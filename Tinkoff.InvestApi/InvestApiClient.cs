@@ -7,16 +7,17 @@ public class InvestApiClient
 {
     public InvestApiClient(CallInvoker callInvoker)
     {
-        Instruments = new InstrumentsService.InstrumentsServiceClient(callInvoker);
-        MarketData = new MarketDataService.MarketDataServiceClient(callInvoker);
-        MarketDataStream = new MarketDataStreamService.MarketDataStreamServiceClient(callInvoker);
-        Operations = new OperationsService.OperationsServiceClient(callInvoker);
-        OperationsStream = new OperationsStreamService.OperationsStreamServiceClient(callInvoker);
-        Orders = new OrdersService.OrdersServiceClient(callInvoker);
-        OrdersStream = new OrdersStreamService.OrdersStreamServiceClient(callInvoker);
-        Sandbox = new SandboxService.SandboxServiceClient(callInvoker);
-        StopOrders = new StopOrdersService.StopOrdersServiceClient(callInvoker);
-        Users = new UsersService.UsersServiceClient(callInvoker);
+        var retriableInvoker = new RetriableCallInvoker(callInvoker);
+        Instruments = new InstrumentsService.InstrumentsServiceClient(retriableInvoker);
+        MarketData = new MarketDataService.MarketDataServiceClient(retriableInvoker);
+        MarketDataStream = new MarketDataStreamService.MarketDataStreamServiceClient(retriableInvoker);
+        Operations = new OperationsService.OperationsServiceClient(retriableInvoker);
+        OperationsStream = new OperationsStreamService.OperationsStreamServiceClient(retriableInvoker);
+        Orders = new OrdersService.OrdersServiceClient(retriableInvoker);
+        OrdersStream = new OrdersStreamService.OrdersStreamServiceClient(retriableInvoker);
+        Sandbox = new SandboxService.SandboxServiceClient(retriableInvoker);
+        StopOrders = new StopOrdersService.StopOrdersServiceClient(retriableInvoker);
+        Users = new UsersService.UsersServiceClient(retriableInvoker);
     }
 
     public InstrumentsService.InstrumentsServiceClient Instruments { get; }

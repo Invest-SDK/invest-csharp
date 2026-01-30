@@ -23,7 +23,7 @@ SDK [доступен](https://www.nuget.org/packages/Tinkoff.InvestApi/) на n
 Основной код сервисов генерируется по .proto файлам при сборке, для этого используются source generators. Proto файлы лежат в submodule. Поэтому необходимо клонировать репозиторий вместе с submodule, это можно сделать командой:
 
 ```
-git clone --recurse-submodules https://github.com/RussianInvestments/invest-api-csharp-sdk.git
+git clone --recurse-submodules https://opensource.tbank.ru/invest/invest-csharp.git
 ```
 
 Затем перейдите в директорию проекта и выполните следующую команду:
@@ -101,6 +101,6 @@ dotnet user-secrets set "AccessToken" "<token>"
 
 ### У меня есть вопрос
 
-[Основной репозиторий с документацией](https://github.com/RussianInvestments/investAPI/) — в нем вы можете задать
+[Основной репозиторий с документацией](https://opensource.tbank.ru/invest/invest-contracts) — в нем вы можете задать
 вопрос в Issues и получать информацию о релизах в Releases. Если возникают вопросы по данному SDK, нашёлся баг или есть
 предложения по улучшению, то можно задать его в Issues.

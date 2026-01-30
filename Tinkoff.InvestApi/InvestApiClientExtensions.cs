@@ -58,7 +58,7 @@ public static class InvestApiClientExtensions
                         InitialBackoff = TimeSpan.FromSeconds(1),
                         MaxBackoff = TimeSpan.FromSeconds(5),
                         BackoffMultiplier = 1.5,
-                        RetryableStatusCodes = {StatusCode.Unavailable}
+                        RetryableStatusCodes = {StatusCode.Unavailable, StatusCode.Internal}
                     }
                 };
 
