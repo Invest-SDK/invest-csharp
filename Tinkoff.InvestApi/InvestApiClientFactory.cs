@@ -6,26 +6,29 @@ public static class InvestApiClientFactory
 {
     public static InvestApiClient Create(string accessToken, bool sandbox = false)
     {
-        return new ServiceCollection()
-            .AddInvestApiClient((_, settings) =>
-            {
-                settings.AccessToken = accessToken;
-                settings.Sandbox = sandbox;
-            })
-            .BuildServiceProvider()
-            .GetRequiredService<InvestApiClient>();
+        var settings = new InvestApiSettings()
+        {
+            AccessToken = accessToken,
+            Sandbox = sandbox
+        };
+        return Create(settings);
     }  
     
     public static InvestApiClient Create(InvestApiSettings settings)
     {
-        return new ServiceCollection()
+        var client = new ServiceCollection()
             .AddInvestApiClient((_, clientSettings) =>
             {
                 clientSettings.AccessToken = settings.AccessToken;
                 clientSettings.Sandbox = settings.Sandbox;
                 clientSettings.AppName = settings.AppName;
+                clientSettings.Timeout = settings.Timeout;
             })
             .BuildServiceProvider()
             .GetRequiredService<InvestApiClient>();
+        
+        client.RetriableInvoker.DefaultTimeout = settings.Timeout ?? 30000;
+
+        return client;
     }
 }

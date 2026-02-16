@@ -6,12 +6,14 @@ namespace Tinkoff.InvestApi;
 public class RetriableCallInvoker : CallInvoker
 {
 
+    public int DefaultTimeout { get; set; }
     readonly CallInvoker _callInvoker;
     readonly int _maxRetries;
     readonly int _defaultDelay;
 
-    public RetriableCallInvoker(CallInvoker callInvoker, int maxRetries = 3, int defaultDelay = 1)
+    public RetriableCallInvoker(CallInvoker callInvoker, int maxRetries = 3, int defaultDelay = 1, int defaultTimeout = 30000)
     {
+        DefaultTimeout = defaultTimeout;
         _callInvoker = callInvoker;
         _maxRetries = maxRetries;
         _defaultDelay = defaultDelay;
@@ -21,6 +23,7 @@ public class RetriableCallInvoker : CallInvoker
         where TRequest : class
         where TResponse : class
     {
+        options = AddDeadline(options);
         for (var attempt = 0;; ++attempt)
         {
             options.CancellationToken.ThrowIfCancellationRequested();
@@ -49,6 +52,7 @@ public class RetriableCallInvoker : CallInvoker
         where TRequest : class
         where TResponse : class
     {
+        options = AddDeadline(options);
         var call = _callInvoker.AsyncUnaryCall(method, host, options, request);
         var state = new CurrentCallState<TResponse>(call);
         return new AsyncUnaryCall<TResponse>(RunWithRetry(),
@@ -88,21 +92,30 @@ public class RetriableCallInvoker : CallInvoker
         where TRequest : class
         where TResponse : class
     {
-        return _callInvoker.AsyncServerStreamingCall(method, host, options, request);
+        return _callInvoker.AsyncServerStreamingCall(method, host, AddDeadline(options), request);
     }
 
     public override AsyncClientStreamingCall<TRequest, TResponse> AsyncClientStreamingCall<TRequest, TResponse>(Method<TRequest, TResponse> method, string? host, CallOptions options)
         where TRequest : class
         where TResponse : class
     {
-        return _callInvoker.AsyncClientStreamingCall(method, host, options);
+        return _callInvoker.AsyncClientStreamingCall(method, host, AddDeadline(options));
     }
 
     public override AsyncDuplexStreamingCall<TRequest, TResponse> AsyncDuplexStreamingCall<TRequest, TResponse>(Method<TRequest, TResponse> method, string? host, CallOptions options)
         where TRequest : class
         where TResponse : class
     {
-        return _callInvoker.AsyncDuplexStreamingCall(method, host, options);
+        return _callInvoker.AsyncDuplexStreamingCall(method, host, AddDeadline(options));
     }
 
+    private CallOptions AddDeadline(CallOptions options)
+    {
+        if (!options.Deadline.HasValue)
+        {
+            options = options.WithDeadline(DateTime.UtcNow.AddMilliseconds(DefaultTimeout));
+        }
+
+        return options;
+    }
 }

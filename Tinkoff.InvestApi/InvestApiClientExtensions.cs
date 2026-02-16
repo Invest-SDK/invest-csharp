@@ -26,44 +26,44 @@ public static class InvestApiClientExtensions
                         ? new Uri("https://sandbox-invest-public-api.tinkoff.ru:443")
                         : new Uri("https://invest-public-api.tinkoff.ru:443");
                 })
-            .ConfigureChannel((serviceProvider, options) =>
-            {
-                options.MaxReceiveMessageSize = null;
-                var settings = new InvestApiSettings();
-                configureSettings(serviceProvider, settings);
-                var accessToken = settings.AccessToken ??
-                                  throw new InvalidOperationException("AccessToken is required");
-                var appName = string.IsNullOrEmpty(settings.AppName)
-                    ? "tinkoff.invest-api-csharp-sdk"
-                    : settings.AppName;
-                var credentials = CallCredentials.FromInterceptor((_, metadata) =>
+                .ConfigureChannel((serviceProvider, options) =>
                 {
-                    metadata.Add("Authorization", $"Bearer {accessToken}");
-                    if (appName != null)
+                    options.MaxReceiveMessageSize = null;
+                    var settings = new InvestApiSettings();
+                    configureSettings(serviceProvider, settings);
+                    var accessToken = settings.AccessToken ??
+                                    throw new InvalidOperationException("AccessToken is required");
+                    var appName = string.IsNullOrEmpty(settings.AppName)
+                        ? "tinkoff.invest-api-csharp-sdk"
+                        : settings.AppName;
+                    var credentials = CallCredentials.FromInterceptor((_, metadata) =>
                     {
-                        metadata.Add("x-app-name", appName);
-                    }
+                        metadata.Add("Authorization", $"Bearer {accessToken}");
+                        if (appName != null)
+                        {
+                            metadata.Add("x-app-name", appName);
+                        }
 
-                    return Task.CompletedTask;
+                        return Task.CompletedTask;
+                    });
+
+                    options.Credentials = ChannelCredentials.Create(new SslCredentials(), credentials);
+
+                    var defaultMethodConfig = new MethodConfig
+                    {
+                        Names = { MethodName.Default },
+                        RetryPolicy = new RetryPolicy
+                        {
+                            MaxAttempts = 5,
+                            InitialBackoff = TimeSpan.FromSeconds(1),
+                            MaxBackoff = TimeSpan.FromSeconds(5),
+                            BackoffMultiplier = 1.5,
+                            RetryableStatusCodes = { StatusCode.Unavailable, StatusCode.Internal }
+                        }
+                    };
+
+                    options.ServiceConfig = new ServiceConfig { MethodConfigs = { defaultMethodConfig } };
                 });
-
-                options.Credentials = ChannelCredentials.Create(new SslCredentials(), credentials);
-
-                var defaultMethodConfig = new MethodConfig
-                {
-                    Names = {MethodName.Default},
-                    RetryPolicy = new RetryPolicy
-                    {
-                        MaxAttempts = 5,
-                        InitialBackoff = TimeSpan.FromSeconds(1),
-                        MaxBackoff = TimeSpan.FromSeconds(5),
-                        BackoffMultiplier = 1.5,
-                        RetryableStatusCodes = {StatusCode.Unavailable, StatusCode.Internal}
-                    }
-                };
-
-                options.ServiceConfig = new ServiceConfig {MethodConfigs = {defaultMethodConfig}};
-            });
         return services;
     }
 }

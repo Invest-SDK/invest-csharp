@@ -7,19 +7,19 @@ public class InvestApiClient
 {
     public InvestApiClient(CallInvoker callInvoker)
     {
-        var retriableInvoker = new RetriableCallInvoker(callInvoker);
-        Instruments = new InstrumentsService.InstrumentsServiceClient(retriableInvoker);
-        MarketData = new MarketDataService.MarketDataServiceClient(retriableInvoker);
-        MarketDataStream = new MarketDataStreamService.MarketDataStreamServiceClient(retriableInvoker);
-        Operations = new OperationsService.OperationsServiceClient(retriableInvoker);
-        OperationsStream = new OperationsStreamService.OperationsStreamServiceClient(retriableInvoker);
-        Orders = new OrdersService.OrdersServiceClient(retriableInvoker);
-        OrdersStream = new OrdersStreamService.OrdersStreamServiceClient(retriableInvoker);
-        Sandbox = new SandboxService.SandboxServiceClient(retriableInvoker);
-        StopOrders = new StopOrdersService.StopOrdersServiceClient(retriableInvoker);
-        Users = new UsersService.UsersServiceClient(retriableInvoker);
+        RetriableInvoker = new RetriableCallInvoker(callInvoker);
+        Instruments = new InstrumentsService.InstrumentsServiceClient(RetriableInvoker);
+        MarketData = new MarketDataService.MarketDataServiceClient(RetriableInvoker);
+        MarketDataStream = new MarketDataStreamService.MarketDataStreamServiceClient(RetriableInvoker);
+        Operations = new OperationsService.OperationsServiceClient(RetriableInvoker);
+        OperationsStream = new OperationsStreamService.OperationsStreamServiceClient(RetriableInvoker);
+        Orders = new OrdersService.OrdersServiceClient(RetriableInvoker);
+        OrdersStream = new OrdersStreamService.OrdersStreamServiceClient(RetriableInvoker);
+        Sandbox = new SandboxService.SandboxServiceClient(RetriableInvoker);
+        StopOrders = new StopOrdersService.StopOrdersServiceClient(RetriableInvoker);
+        Users = new UsersService.UsersServiceClient(RetriableInvoker);
     }
-
+    public RetriableCallInvoker RetriableInvoker { get; }
     public InstrumentsService.InstrumentsServiceClient Instruments { get; }
     public MarketDataService.MarketDataServiceClient MarketData { get; }
     public MarketDataStreamService.MarketDataStreamServiceClient MarketDataStream { get; }
