@@ -92,21 +92,21 @@ public class RetriableCallInvoker : CallInvoker
         where TRequest : class
         where TResponse : class
     {
-        return _callInvoker.AsyncServerStreamingCall(method, host, AddDeadline(options), request);
+        return _callInvoker.AsyncServerStreamingCall(method, host, options, request);
     }
 
     public override AsyncClientStreamingCall<TRequest, TResponse> AsyncClientStreamingCall<TRequest, TResponse>(Method<TRequest, TResponse> method, string? host, CallOptions options)
         where TRequest : class
         where TResponse : class
     {
-        return _callInvoker.AsyncClientStreamingCall(method, host, AddDeadline(options));
+        return _callInvoker.AsyncClientStreamingCall(method, host, options);
     }
 
     public override AsyncDuplexStreamingCall<TRequest, TResponse> AsyncDuplexStreamingCall<TRequest, TResponse>(Method<TRequest, TResponse> method, string? host, CallOptions options)
         where TRequest : class
         where TResponse : class
     {
-        return _callInvoker.AsyncDuplexStreamingCall(method, host, AddDeadline(options));
+        return _callInvoker.AsyncDuplexStreamingCall(method, host, options);
     }
 
     private CallOptions AddDeadline(CallOptions options)
