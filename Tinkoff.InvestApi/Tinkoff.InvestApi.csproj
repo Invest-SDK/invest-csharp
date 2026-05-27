@@ -30,4 +30,8 @@
     <ItemGroup>
         <Protobuf Include="..\investAPI\src\docs\contracts\*.proto" Link="protos\*.proto" GrpcServices="Client" />
     </ItemGroup>
+
+    <PropertyGroup>
+        <NoWarn>$(NoWarn);1591</NoWarn>
+    </PropertyGroup>
 </Project>

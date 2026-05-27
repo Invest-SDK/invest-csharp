@@ -1,6 +1,7 @@
 ﻿using Grpc.Core;
 using Grpc.Net.Client.Configuration;
 using Tinkoff.InvestApi;
+using Tinkoff.InvestApi.V1.History;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
@@ -64,6 +65,8 @@ public static class InvestApiClientExtensions
 
                     options.ServiceConfig = new ServiceConfig { MethodConfigs = { defaultMethodConfig } };
                 });
+        services.AddHttpClient<IHistoryService, HistoryService>(x =>
+            x.BaseAddress = new Uri("https://invest-public-api.tinkoff.ru"));
         return services;
     }
 }

@@ -1,0 +1,3 @@
+databaseChangeLog:
+  - include:
+      file: DOTNET-629.sql

@@ -1,0 +1,63 @@
+services:
+
+  s3server:
+    image: quay.io/minio/minio:RELEASE.2025-09-07T16-13-09Z
+    container_name: s3server
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    command: server /data --console-address ":9001"
+    volumes:
+      - s3server_data:/data
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+
+  s3buckets:
+    image: quay.io/minio/minio:RELEASE.2025-09-07T16-13-09Z
+    depends_on:
+      - s3server
+    entrypoint:
+      - /bin/sh
+      - -c
+      - |
+        until (/usr/bin/mc alias set myminio http://s3server:9000 minioadmin minioadmin;) do
+          echo 'Waiting for MinIO...'
+          sleep 1
+        done;
+        /usr/bin/mc mb myminio/history-data;
+        /usr/bin/mc admin user add myminio minioaccesskey miniosecretkey
+        /usr/bin/mc admin policy attach myminio readwrite --user=minioaccesskey
+        exit 0;
+
+  database:
+    image: postgres:17-alpine
+    volumes:
+      - postgresql_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USERNAME=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=history_data
+
+  migrations:
+    image: liquibase/liquibase:4.33
+    depends_on:
+      - database
+    volumes:
+      - ./migrations:/liquibase/changelog:ro
+    command:
+      - /bin/bash
+      - -c
+      - |
+        cd /liquibase/changelog
+        liquibase --url=jdbc:postgresql://database:5432/history_data --username=postgres --password=postgres --changeLogFile=changelog.yml --contexts=local update
+
+volumes:
+
+  s3server_data:
+    driver: local
+
+  postgresql_data:
+    driver: local
