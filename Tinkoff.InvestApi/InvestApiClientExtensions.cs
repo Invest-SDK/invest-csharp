@@ -24,8 +24,8 @@ public static class InvestApiClientExtensions
                     var settings = new InvestApiSettings();
                     configureSettings(serviceProvider, settings);
                     options.Address = settings.Sandbox
-                        ? new Uri("https://sandbox-invest-public-api.tinkoff.ru:443")
-                        : new Uri("https://invest-public-api.tinkoff.ru:443");
+                        ? new Uri("https://sandbox-invest-public-api.tbank.ru:443")
+                        : new Uri("https://invest-public-api.tbank.ru:443");
                 })
                 .ConfigureChannel((serviceProvider, options) =>
                 {
@@ -47,6 +47,14 @@ public static class InvestApiClientExtensions
 
                         return Task.CompletedTask;
                     });
+                    if (!settings.EnableSsl)
+                    {
+                        var handler = new HttpClientHandler
+                        {
+                            ServerCertificateCustomValidationCallback = (_, _, _, _) => true
+                        };
+                        options.HttpHandler = handler;
+                    }
 
                     options.Credentials = ChannelCredentials.Create(new SslCredentials(), credentials);
 
@@ -66,7 +74,7 @@ public static class InvestApiClientExtensions
                     options.ServiceConfig = new ServiceConfig { MethodConfigs = { defaultMethodConfig } };
                 });
         services.AddHttpClient<IHistoryService, HistoryService>(x =>
-            x.BaseAddress = new Uri("https://invest-public-api.tinkoff.ru"));
+            x.BaseAddress = new Uri("https://invest-public-api.tbank.ru"));
         return services;
     }
 }

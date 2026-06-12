@@ -22,4 +22,8 @@ public class InvestApiSettings
      * Таймаут соединения
      */
     public int? Timeout { get; set; }
+    /**
+    * Включить проверку сертификатов
+    */
+    public bool EnableSsl { get; set; } = false;
 }
