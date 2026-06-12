@@ -26,7 +26,7 @@ public class InvestApiClientTests
     [Fact]
     public async Task Client_Call_ToValidAddress()
     {
-        Handler.Expect("https://invest-public-api.tinkoff.ru:443/*");
+        Handler.Expect("https://invest-public-api.tbank.ru:443/*");
         await SendRequest();
         _fixture.MockHttpMessageHandler.VerifyNoOutstandingExpectation();
     }
