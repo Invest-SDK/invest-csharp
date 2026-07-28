@@ -1,6 +1,7 @@
 ﻿using Grpc.Core;
 using Grpc.Net.Client.Configuration;
 using Tinkoff.InvestApi;
+using Tinkoff.InvestApi.V1.Cache;
 using Tinkoff.InvestApi.V1.History;
 
 namespace Microsoft.Extensions.DependencyInjection;
@@ -73,8 +74,17 @@ public static class InvestApiClientExtensions
 
                     options.ServiceConfig = new ServiceConfig { MethodConfigs = { defaultMethodConfig } };
                 });
-        services.AddHttpClient<IHistoryService, HistoryService>(x =>
-            x.BaseAddress = new Uri("https://invest-public-api.tbank.ru"));
+        services.AddHttpClient<IHistoryService, HistoryService>(x => x.BaseAddress = new Uri("https://invest-public-api.tbank.ru"));
+        services.AddCache();
+        return services;
+    }
+
+    private static IServiceCollection AddCache(this IServiceCollection services)
+    {
+        services.AddOptions<CacheOptions>().BindConfiguration(CacheOptions.CacheSection);
+        services.AddMemoryCache();
+        services.AddSingleton<IInstrumentCache, InstrumentCache>();
+        services.AddTransient<IInstrumentCacheService, InstrumentCacheService>();
         return services;
     }
 }

@@ -1,4 +1,5 @@
 using Grpc.Core;
+using Tinkoff.InvestApi.V1.Cache;
 
 namespace Tinkoff.InvestApi.V1;
 
@@ -7,6 +8,13 @@ public partial class InstrumentsService
     public partial class InstrumentsServiceClient
     {
         private static readonly InstrumentsRequest InstrumentsRequest = new();
+        private readonly IInstrumentCacheService cacheService;
+
+        public InstrumentsServiceClient(CallInvoker callInvoker, IInstrumentCacheService cacheService)
+            : this(callInvoker)
+        {
+            this.cacheService = cacheService;
+        }
 
         public AsyncUnaryCall<BondsResponse> BondsAsync(CancellationToken cancellationToken = default)
         {
@@ -66,6 +74,87 @@ public partial class InstrumentsService
         public SharesResponse Shares(CancellationToken cancellationToken = default)
         {
             return Shares(InstrumentsRequest, null, null, cancellationToken);
+        }
+
+        public async Task<Bond> BondBy(InstrumentRequest request, CancellationToken cancellationToken = default)
+        {
+            return await cacheService.FindBy(request, async () =>
+            {
+                var response = await BondByAsync(request, null, null, cancellationToken);
+                return response.Instrument;
+            });
+        }
+
+        public async Task<Currency> CurrencyBy(InstrumentRequest request, CancellationToken cancellationToken = default)
+        {
+            return await cacheService.FindBy(request, async () =>
+            {
+                var response = await CurrencyByAsync(request, null, null, cancellationToken);
+                return response.Instrument;
+            });
+        }
+
+        public async Task<DfaResponse> DfaBy(InstrumentRequest request, CancellationToken cancellationToken = default)
+        {
+            return await cacheService.FindBy(request, async () =>
+            {
+                var response = await DfaByAsync(request, null, null, cancellationToken);
+                return response;
+            });
+        }
+
+        public async Task<Etf> EtfBy(InstrumentRequest request, CancellationToken cancellationToken = default)
+        {
+            return await cacheService.FindBy(request, async () =>
+            {
+                var response = await EtfByAsync(request, null, null, cancellationToken);
+                return response.Instrument;
+            });
+        }
+
+        public async Task<Future> FutureBy(InstrumentRequest request, CancellationToken cancellationToken = default)
+        {
+            return await cacheService.FindBy(request, async () =>
+            {
+                var response = await FutureByAsync(request, null, null, cancellationToken);
+                return response.Instrument;
+            });
+        }
+
+        public async Task<Instrument> GetInstrumentBy(InstrumentRequest request, CancellationToken cancellationToken = default)
+        {
+            return await cacheService.FindBy(request, async () =>
+            {
+                var response = await GetInstrumentByAsync(request, null, null, cancellationToken);
+                return response.Instrument;
+            });
+        }
+
+        public async Task<Option> OptionBy(InstrumentRequest request, CancellationToken cancellationToken = default)
+        {
+            return await cacheService.FindBy(request, async () =>
+            {
+                var response = await OptionByAsync(request, null, null, cancellationToken);
+                return response.Instrument;
+            });
+        }
+
+        public async Task<Share> ShareBy(InstrumentRequest request, CancellationToken cancellationToken = default)
+        {
+            return await cacheService.FindBy(request, async () =>
+            {
+                var response = await ShareByAsync(request, null, null, cancellationToken);
+                return response.Instrument;
+            });
+        }
+
+        public async Task<StructuredNote> StructuredNoteBy(InstrumentRequest request, CancellationToken cancellationToken = default)
+        {
+            return await cacheService.FindBy(request, async () =>
+            {
+                var response = await StructuredNoteByAsync(request, null, null, cancellationToken);
+                return response.Instrument;
+            });
         }
     }
 }

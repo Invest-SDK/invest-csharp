@@ -1,16 +1,17 @@
 ﻿using Grpc.Core;
 using Tinkoff.InvestApi.V1;
+using Tinkoff.InvestApi.V1.Cache;
 using Tinkoff.InvestApi.V1.History;
 
 namespace Tinkoff.InvestApi;
 
 public class InvestApiClient
 {
-    public InvestApiClient(CallInvoker callInvoker, IHistoryService historyService)
+    public InvestApiClient(CallInvoker callInvoker, IHistoryService historyService, IInstrumentCacheService instrumentCacheService)
     {
         RetriableInvoker = new RetriableCallInvoker(callInvoker);
         History = historyService;
-        Instruments = new InstrumentsService.InstrumentsServiceClient(RetriableInvoker);
+        Instruments = new InstrumentsService.InstrumentsServiceClient(RetriableInvoker, instrumentCacheService);
         MarketData = new MarketDataService.MarketDataServiceClient(RetriableInvoker);
         MarketDataStream = new MarketDataStreamService.MarketDataStreamServiceClient(RetriableInvoker);
         Operations = new OperationsService.OperationsServiceClient(RetriableInvoker);
