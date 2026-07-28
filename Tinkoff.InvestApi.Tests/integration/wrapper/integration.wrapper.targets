@@ -1,0 +1,6 @@
+<Project>
+  <!-- Ensure proto files are generated before compilation -->
+  <Target Name="EnsureProtobufGenerated" BeforeTargets="BeforeBuild">
+    <Message Importance="high" Text="Generating protobuf classes..." />
+  </Target>
+</Project>

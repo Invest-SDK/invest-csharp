@@ -8,8 +8,8 @@ public interface IHistoryService
     IAsyncEnumerable<HistoryCandle> GetHistoryData(int year, Guid instrumentId);
     IAsyncEnumerable<HistoryTrade> GetHistoryTrades(DateTime date);
     IAsyncEnumerable<HistoryTrade> GetHistoryTrades(DateTime date, string instrumentId);
-    Task<Stream> GetHistoryTradesCsv(DateTime date);
-    Task<Stream> GetHistoryTradesCsv(DateTime date, string instrumentId);
+    Task<System.IO.Stream> GetHistoryTradesCsv(DateTime date);
+    Task<System.IO.Stream> GetHistoryTradesCsv(DateTime date, string instrumentId);
 }
 
 public class HistoryService(HttpClient httpClient) : IHistoryService
@@ -61,19 +61,19 @@ public class HistoryService(HttpClient httpClient) : IHistoryService
         }
     }
 
-    public async Task<Stream> GetHistoryTradesCsv(DateTime date)
+    public async Task<System.IO.Stream> GetHistoryTradesCsv(DateTime date)
     {
         var url = "/history-trades/" + date.ToString("yyyy-MM-dd");
         return await GetCsv(url);
     }
 
-    public async Task<Stream> GetHistoryTradesCsv(DateTime date, string instrumentId)
+    public async Task<System.IO.Stream> GetHistoryTradesCsv(DateTime date, string instrumentId)
     {
         var url = "/history-trades/" + date.ToString("yyyy-MM-dd") + "?instrumentId=" + instrumentId;
         return await GetCsv(url);
     }
 
-    private async Task<Stream> GetCsv(string url)
+    private async Task<System.IO.Stream> GetCsv(string url)
     {
         var response = await httpClient.GetAsync(url, HttpCompletionOption.ResponseHeadersRead);
         if (response.IsSuccessStatusCode)

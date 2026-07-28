@@ -2,6 +2,7 @@
 using Grpc.Core;
 using Microsoft.Extensions.DependencyInjection;
 using Tinkoff.InvestApi;
+using Tinkoff.InvestApi.Stream;
 using Tinkoff.InvestApi.V1;
 
 // Получаем токен из переменной окружения
@@ -18,10 +19,13 @@ serviceCollection.AddInvestApiClient((_, settings) =>
 var serviceProvider = serviceCollection.BuildServiceProvider();
 
 var client = serviceProvider.GetRequiredService<InvestApiClient>();
+var configuration = new ResilenceDuplexStreamConfigurer<MarketDataStreamService.MarketDataStreamServiceClient, MarketDataRequest, MarketDataResponse>(
+	client.MarketDataStream, 
+	(client, options) => client.MarketDataStream(options))
+	.WithPingDelayMs(1000)
+	.WithInactivityTimeoutMs(10000);
 
-var stream = client.MarketDataStream.MarketDataStream();
-// Отправляем запрос в стрим
-await stream.RequestStream.WriteAsync(new MarketDataRequest
+var subscribeCandlesRequest = new MarketDataRequest
 {
 	SubscribeCandlesRequest = new SubscribeCandlesRequest
 	{
@@ -35,9 +39,35 @@ await stream.RequestStream.WriteAsync(new MarketDataRequest
 		},
 		SubscriptionAction = SubscriptionAction.Subscribe
 	}
-});
-// Обрабатываем все приходящие из стрима ответы
-await foreach (var response in stream.ResponseStream.ReadAllAsync())
+};
+
+var pingSettingsRequest = new MarketDataRequest
+{
+	PingSettings = new PingDelaySettings
+	{
+		PingDelayMs = 5000
+	}
+};
+int i = 0;
+var stream = new ResilenceDuplexStreamWrapper<MarketDataStreamService.MarketDataStreamServiceClient, MarketDataRequest, MarketDataResponse>(
+	configuration,
+	async response =>
 {
 	Console.WriteLine(JsonSerializer.Serialize(response));
-}
+	Interlocked.Increment(ref i);
+});
+
+await stream.ConnectAsync();
+await stream.CallAsync(subscribeCandlesRequest);
+await stream.CallAsync(pingSettingsRequest);
+await Task.Run(() =>
+{
+	while (true)
+	{
+		if (i == 10)
+		{
+			stream.Disconnect();
+			break;
+		}
+	}
+});
