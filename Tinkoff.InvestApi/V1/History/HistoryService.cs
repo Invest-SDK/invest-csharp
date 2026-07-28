@@ -85,7 +85,6 @@ public class HistoryService(HttpClient httpClient) : IHistoryService
 
     private HistoryTrade ParseHistoryTrade(string csvLine)
     {
-#if NET5_0_OR_GREATER
         var csvSpan = csvLine.AsSpan();
         Span<Range> ranges = stackalloc Range[7];
         csvSpan.Split(ranges, csvDelimiterTrade);
@@ -101,25 +100,10 @@ public class HistoryService(HttpClient httpClient) : IHistoryService
                 ? uid
                 : null
         };
-#else
-        var csvValues = csvLine.Split(csvDelimiterTrade);
-        var instrumentUid = Guid.TryParse(csvValues[6], out var uid) ? uid : (Guid?)null;
-        return new HistoryTrade
-        {
-            TradeTs = DateTimeOffset.Parse(csvValues[0]),
-            TickerCc = csvValues[1],
-            Direction = csvValues[2],
-            Price = decimal.Parse(csvValues[3], csvCultureInfo),
-            Quantity = long.Parse(csvValues[4]),
-            TradeSource = csvValues[5],
-            InstrumentUid = instrumentUid
-        };
-#endif
     }
 
     private HistoryCandle ParseHistoryCandle(string csvLine)
     {
-#if NET5_0_OR_GREATER
         var csvSpan = csvLine.AsSpan();
         Span<Range> ranges = stackalloc Range[8]; // one extra delimiter at the end
         csvSpan.Split(ranges, csvDelimiterCandle);
@@ -133,18 +117,5 @@ public class HistoryService(HttpClient httpClient) : IHistoryService
             Low = decimal.Parse(csvSpan[ranges[5]], csvCultureInfo),
             Volume = long.Parse(csvSpan[ranges[6]])
         };
-#else
-        var csvValues = csvLine.Split(csvDelimiterCandle);
-        return new HistoryCandle
-        {
-            InstrumentUid = Guid.Parse(csvValues[0]),
-            Utc = DateTimeOffset.Parse(csvValues[1]),
-            Open = decimal.Parse(csvValues[2], csvCultureInfo),
-            Close = decimal.Parse(csvValues[3], csvCultureInfo),
-            High = decimal.Parse(csvValues[4], csvCultureInfo),
-            Low = decimal.Parse(csvValues[5], csvCultureInfo),
-            Volume = long.Parse(csvValues[6])
-        };
-#endif
     }
 }
