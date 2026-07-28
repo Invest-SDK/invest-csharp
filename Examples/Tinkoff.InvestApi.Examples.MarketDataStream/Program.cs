@@ -1,5 +1,6 @@
 ﻿using System.Text.Json;
 using Grpc.Core;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Tinkoff.InvestApi;
 using Tinkoff.InvestApi.Stream;
@@ -12,6 +13,7 @@ var token = Environment.GetEnvironmentVariable("TOKEN");
 
 // Собираем ServiceCollection с клиентом
 var serviceCollection = new ServiceCollection();
+serviceCollection.AddSingleton<IConfiguration>(new ConfigurationBuilder().Build());
 serviceCollection.AddInvestApiClient((_, settings) =>
 {
 	settings.AccessToken = token;
