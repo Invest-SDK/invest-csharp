@@ -5,7 +5,7 @@
 [![NuGet version (Tinkoff Trading OpenApi)](https://img.shields.io/nuget/dt/Tinkoff.InvestApi.svg)](https://www.nuget.org/packages/Tinkoff.InvestApi/)
 
 Данный проект представляет собой инструментарий на языке C# для работы с grpc-интерфейсом торговой
-платформы [Тинькофф Инвестиции](https://www.tinkoff.ru/invest/).
+платформы [Т-Инвестиции](https://www.tbank.ru/invest/).
 
 ## Начало работы
 
@@ -34,7 +34,7 @@ dotnet build -c Release
 
 ## Документация
 
-Подробную документацию по InvestApi можно найти по [ссылке](https://RussianInvestments.github.io/investAPI/).
+Подробную документацию по InvestApi можно найти по [ссылке](https://developer.tbank.ru/invest/intro/intro).
 
 ### Быстрый старт
 
@@ -91,7 +91,7 @@ dotnet user-secrets set "AccessToken" "<token>"
 
 ### Где взять токен аутентификации?
 
-В разделе инвестиций вашего [личного кабинета tinkoff](https://www.tinkoff.ru/invest/)
+В разделе инвестиций вашего [личного кабинета tinkoff](https://www.tbank.ru/invest/)
 
 * Перейдите в настройки
 * Проверьте, что функция “Подтверждение сделок кодом” отключена
