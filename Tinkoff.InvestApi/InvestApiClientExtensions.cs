@@ -1,5 +1,6 @@
 ﻿using Grpc.Core;
 using Grpc.Net.Client.Configuration;
+using Microsoft.Extensions.Configuration;
 using Tinkoff.InvestApi;
 using Tinkoff.InvestApi.V1.Cache;
 using Tinkoff.InvestApi.V1.History;
@@ -19,6 +20,7 @@ public static class InvestApiClientExtensions
     public static IServiceCollection AddInvestApiClient(this IServiceCollection services, string name,
         Action<IServiceProvider, InvestApiSettings> configureSettings)
     {
+        services.AddConfiguration();
         services.AddGrpcClient<InvestApiClient>(name,
                 (serviceProvider, options) =>
                 {
@@ -85,6 +87,20 @@ public static class InvestApiClientExtensions
         services.AddMemoryCache();
         services.AddSingleton<IInstrumentCache, InstrumentCache>();
         services.AddTransient<IInstrumentCacheService, InstrumentCacheService>();
+        return services;
+    }
+
+    private static IServiceCollection AddConfiguration(this IServiceCollection services)
+    {
+        if (services.Any(x => x.ServiceType == typeof(IConfiguration)))
+        {
+            return services;
+        }
+        IConfiguration configuration = new ConfigurationBuilder()
+            .SetBasePath(AppContext.BaseDirectory)
+            .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
+            .Build();
+        services.AddSingleton(configuration);
         return services;
     }
 }

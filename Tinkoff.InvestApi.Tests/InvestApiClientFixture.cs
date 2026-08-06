@@ -1,5 +1,4 @@
 using Grpc.Net.ClientFactory;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using RichardSzalay.MockHttp;
 
@@ -12,7 +11,6 @@ public class InvestApiClientFixture
     public InvestApiClientFixture()
     {
         var serviceCollection = new ServiceCollection();
-        serviceCollection.AddSingleton<IConfiguration>(new ConfigurationBuilder().Build());
         serviceCollection.AddInvestApiClient((_, settings) => settings.AccessToken = "token");
         serviceCollection.AddOptions<GrpcClientFactoryOptions>("")
             .PostConfigure(factoryOptions => factoryOptions.ChannelOptionsActions.Add(options =>
