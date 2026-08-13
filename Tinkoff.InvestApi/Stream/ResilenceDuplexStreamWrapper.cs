@@ -302,4 +302,25 @@ public class ResilenceDuplexStreamWrapper<TClient, TRequest, TResponse>(
             // Нормальное завершение
         }
     }
+
+    public async ValueTask DisposeAsync()
+    {
+        Disconnect();
+        _connectLock?.Dispose();
+        _lifetimeCts?.Dispose();
+        _disconnectCts?.Dispose();
+        _backgroundCts?.Dispose();
+
+        if (_currentStream != null)
+        {
+            try
+            {
+                await _currentStream.RequestStream.CompleteAsync();
+            }
+            catch
+            {
+                // Игнорируем ошибки при завершении стрима
+            }
+        }
+    }
 }
