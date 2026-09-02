@@ -109,6 +109,32 @@ public static class MarketDataUtils
         return MarketDataAction.UNKNOWN;
     }
 
+    public static MarketDataResponseType? GetResponseType(MarketDataResponse response)
+    {
+
+        if (response.Candle.IsInitialized())
+        {
+            return MarketDataResponseType.CANDLE;
+        }
+        else if (response.LastPrice.IsInitialized())
+        {
+            return MarketDataResponseType.LAST_PRICE;
+        }
+        else if (response.Orderbook.IsInitialized())
+        {
+            return MarketDataResponseType.ORDER_BOOK;
+        }
+        else if (response.Trade.IsInitialized())
+        {
+            return MarketDataResponseType.TRADE;
+        }
+        else if (response.TradingStatus.IsInitialized())
+        {
+            return MarketDataResponseType.TRADING_STATUS;
+        }
+        return null;
+    }
+
     private static MarketDataAction GetActionFromSubscriptionAction(SubscriptionAction subscriptionAction)
     {
         if (subscriptionAction == SubscriptionAction.Subscribe)

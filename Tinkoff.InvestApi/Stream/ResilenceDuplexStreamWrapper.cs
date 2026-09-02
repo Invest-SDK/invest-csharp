@@ -8,15 +8,15 @@ namespace Tinkoff.InvestApi.Stream;
 /// </summary>
 public class ResilenceDuplexStreamWrapper<TClient, TRequest, TResponse>(
     ResilenceDuplexStreamConfigurer<TClient, TRequest, TResponse> streamConfigurer,
-    Func<TResponse, Task> messageHandler = null,
-    Func<AsyncDuplexStreamingCall<TRequest, TResponse>, Task> connectionHandler = null)
+    Func<TResponse, Task>? messageHandler = null,
+    Func<AsyncDuplexStreamingCall<TRequest, TResponse>, Task>? connectionHandler = null)
     where TRequest : class
     where TResponse : class
     where TClient : ClientBase<TClient>
 {
     private readonly ResilenceDuplexStreamConfigurer<TClient, TRequest, TResponse> _streamConfigurer = streamConfigurer;
-    private readonly Func<TResponse, Task> _messageHandler = messageHandler;
-    private readonly Func<AsyncDuplexStreamingCall<TRequest, TResponse>, Task> _connectionHandler = connectionHandler;
+    private readonly Func<TResponse, Task>? _messageHandler = messageHandler;
+    private readonly Func<AsyncDuplexStreamingCall<TRequest, TResponse>, Task>? _connectionHandler = connectionHandler;
     private readonly SemaphoreSlim _connectLock = new(1, 1);
     private readonly Channel<QueueItem> _queue = Channel.CreateUnbounded<QueueItem>(new UnboundedChannelOptions { SingleReader = true });
     private readonly CancellationTokenSource _lifetimeCts = new();
