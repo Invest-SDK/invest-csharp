@@ -107,9 +107,12 @@ public class ResilenceDuplexStreamWrapper<TClient, TRequest, TResponse>(
         _queue.Writer.TryComplete();
     }
 
-    public Guid GetStreamGuid()
+    public Guid StreamGuid
     {
-        return streamGuid;
+        get
+        {
+            return streamGuid;
+        }
     }
 
     private async Task RunWriteLoopAsync()

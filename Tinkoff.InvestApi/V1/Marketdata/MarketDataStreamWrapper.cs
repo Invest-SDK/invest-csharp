@@ -156,6 +156,15 @@ public class MarketDataStreamWrapper
         return _streamWrapper.IsConnected();
     }
 
+    /// <summary>
+    /// Возвращает количество активных подписок на стриме.
+    /// Используется менеджером для контроля лимита подписок на один стрим.
+    /// </summary>
+    public int GetSubscriptionCount()
+    {
+        return _activeSubscriptions.Count;
+    }
+
     private async Task AddSubscriptionAsync(SubscriptionRequestBase request, CancellationToken cancellationToken)
     {
         _subscriptionRequests.Enqueue(request);
