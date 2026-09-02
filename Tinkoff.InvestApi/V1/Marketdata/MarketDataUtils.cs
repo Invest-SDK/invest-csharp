@@ -8,7 +8,7 @@ public static class MarketDataUtils
 {
     public static MarketDataSubscriptionResult? GetSubscriptionResultFromResponse(MarketDataResponse response)
     {
-        if (response.SubscribeCandlesResponse.IsInitialized())
+        if (response.SubscribeCandlesResponse != null && response.SubscribeCandlesResponse.IsInitialized())
         {
             return new MarketDataSubscriptionResult(
                 GetActionFromResponse(response),
@@ -23,7 +23,7 @@ public static class MarketDataUtils
                     x => GetSubscriptionStatusFromResponse(x.SubscriptionStatus)
                 ));
         }
-        else if (response.SubscribeLastPriceResponse.IsInitialized())
+        else if (response.SubscribeLastPriceResponse != null && response.SubscribeLastPriceResponse.IsInitialized())
         {
             return new MarketDataSubscriptionResult(
                 GetActionFromResponse(response),
@@ -37,7 +37,7 @@ public static class MarketDataUtils
                     x => GetSubscriptionStatusFromResponse(x.SubscriptionStatus)
                 ));
         }
-        else if (response.SubscribeOrderBookResponse.IsInitialized())
+        else if (response.SubscribeOrderBookResponse != null && response.SubscribeOrderBookResponse.IsInitialized())
         {
             return new MarketDataSubscriptionResult(
                 GetActionFromResponse(response),
@@ -53,7 +53,7 @@ public static class MarketDataUtils
                     x => GetSubscriptionStatusFromResponse(x.SubscriptionStatus)
                 ));
         }
-        else if (response.SubscribeTradesResponse.IsInitialized())
+        else if (response.SubscribeTradesResponse != null && response.SubscribeTradesResponse.IsInitialized())
         {
             return new MarketDataSubscriptionResult(
                 GetActionFromResponse(response),
@@ -67,7 +67,7 @@ public static class MarketDataUtils
                     x => GetSubscriptionStatusFromResponse(x.SubscriptionStatus)
                 ));
         }
-        else if (response.SubscribeInfoResponse.IsInitialized())
+        else if (response.SubscribeInfoResponse != null && response.SubscribeInfoResponse.IsInitialized())
         {
             return new MarketDataSubscriptionResult(
                 GetActionFromResponse(response),
@@ -86,23 +86,23 @@ public static class MarketDataUtils
 
     public static MarketDataAction GetActionFromResponse(MarketDataResponse response)
     {
-        if (response.SubscribeCandlesResponse.IsInitialized())
+        if (response.SubscribeCandlesResponse != null && response.SubscribeCandlesResponse.IsInitialized())
         {
             return GetActionFromSubscriptionAction(response.SubscribeCandlesResponse.CandlesSubscriptions[0].SubscriptionAction);
         }
-        else if (response.SubscribeLastPriceResponse.IsInitialized())
+        else if (response.SubscribeLastPriceResponse != null && response.SubscribeLastPriceResponse.IsInitialized())
         {
             return GetActionFromSubscriptionAction(response.SubscribeLastPriceResponse.LastPriceSubscriptions[0].SubscriptionAction);
         }
-        else if (response.SubscribeOrderBookResponse.IsInitialized())
+        else if (response.SubscribeOrderBookResponse != null && response.SubscribeOrderBookResponse.IsInitialized())
         {
             return GetActionFromSubscriptionAction(response.SubscribeOrderBookResponse.OrderBookSubscriptions[0].SubscriptionAction);
         }
-        else if (response.SubscribeTradesResponse.IsInitialized())
+        else if (response.SubscribeTradesResponse != null && response.SubscribeTradesResponse.IsInitialized())
         {
             return GetActionFromSubscriptionAction(response.SubscribeTradesResponse.TradeSubscriptions[0].SubscriptionAction);
         }
-        else if (response.SubscribeInfoResponse.IsInitialized())
+        else if (response.SubscribeInfoResponse != null && response.SubscribeInfoResponse.IsInitialized())
         {
             return GetActionFromSubscriptionAction(response.SubscribeInfoResponse.InfoSubscriptions[0].SubscriptionAction);
         }
@@ -112,23 +112,23 @@ public static class MarketDataUtils
     public static MarketDataResponseType? GetResponseType(MarketDataResponse response)
     {
 
-        if (response.Candle.IsInitialized())
+        if (response.Candle != null && response.Candle.IsInitialized())
         {
             return MarketDataResponseType.CANDLE;
         }
-        else if (response.LastPrice.IsInitialized())
+        else if (response.LastPrice != null && response.LastPrice.IsInitialized())
         {
             return MarketDataResponseType.LAST_PRICE;
         }
-        else if (response.Orderbook.IsInitialized())
+        else if (response.Orderbook != null && response.Orderbook.IsInitialized())
         {
             return MarketDataResponseType.ORDER_BOOK;
         }
-        else if (response.Trade.IsInitialized())
+        else if (response.Trade != null && response.Trade.IsInitialized())
         {
             return MarketDataResponseType.TRADE;
         }
-        else if (response.TradingStatus.IsInitialized())
+        else if (response.TradingStatus != null && response.TradingStatus.IsInitialized())
         {
             return MarketDataResponseType.TRADING_STATUS;
         }

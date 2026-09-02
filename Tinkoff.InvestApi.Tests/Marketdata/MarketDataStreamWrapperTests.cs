@@ -31,10 +31,8 @@ public class MarketDataStreamWrapperTests
             .WithInactivityTimeoutMs(10000)
             .WithPingDelayMs(1000);
 
-        var context = new MarketDataStreamContext();
-
         // Act
-        var wrapper = new MarketDataStreamWrapper(configurer, context);
+        var wrapper = new MarketDataStreamWrapper(configurer);
 
         // Assert
         wrapper.Should().NotBeNull();
@@ -52,8 +50,7 @@ public class MarketDataStreamWrapperTests
             .WithInactivityTimeoutMs(10000)
             .WithPingDelayMs(1000);
 
-        var context = new MarketDataStreamContext();
-        var wrapper = new MarketDataStreamWrapper(configurer, context);
+        var wrapper = new MarketDataStreamWrapper(configurer);
 
         // Act & Assert
         await wrapper.DisposeAsync(); // Не должно выбрасывать исключений

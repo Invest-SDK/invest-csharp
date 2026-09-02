@@ -1,4 +1,6 @@
 using System.Threading.Channels;
+using Microsoft.Extensions.Logging;
+using Google.Api;
 using Grpc.Core;
 
 namespace Tinkoff.InvestApi.Stream;
@@ -9,14 +11,17 @@ namespace Tinkoff.InvestApi.Stream;
 public class ResilenceDuplexStreamWrapper<TClient, TRequest, TResponse>(
     ResilenceDuplexStreamConfigurer<TClient, TRequest, TResponse> streamConfigurer,
     Func<TResponse, Task>? messageHandler = null,
-    Func<AsyncDuplexStreamingCall<TRequest, TResponse>, Task>? connectionHandler = null)
+    Func<AsyncDuplexStreamingCall<TRequest, TResponse>, Task>? connectionHandler = null,
+    ILogger? logger = null)
     where TRequest : class
     where TResponse : class
     where TClient : ClientBase<TClient>
 {
+    private readonly Guid streamGuid = Guid.NewGuid();
     private readonly ResilenceDuplexStreamConfigurer<TClient, TRequest, TResponse> _streamConfigurer = streamConfigurer;
     private readonly Func<TResponse, Task>? _messageHandler = messageHandler;
     private readonly Func<AsyncDuplexStreamingCall<TRequest, TResponse>, Task>? _connectionHandler = connectionHandler;
+    private readonly ILogger? _logger = logger;
     private readonly SemaphoreSlim _connectLock = new(1, 1);
     private readonly Channel<QueueItem> _queue = Channel.CreateUnbounded<QueueItem>(new UnboundedChannelOptions { SingleReader = true });
     private readonly CancellationTokenSource _lifetimeCts = new();
@@ -100,6 +105,11 @@ public class ResilenceDuplexStreamWrapper<TClient, TRequest, TResponse>(
         _disconnectCts?.Cancel();
         _lifetimeCts.Cancel();
         _queue.Writer.TryComplete();
+    }
+
+    public Guid GetStreamGuid()
+    {
+        return streamGuid;
     }
 
     private async Task RunWriteLoopAsync()
@@ -196,6 +206,7 @@ public class ResilenceDuplexStreamWrapper<TClient, TRequest, TResponse>(
                 {
                     Interlocked.Exchange(ref _lastInteraction, DateTimeOffset.UtcNow.ToUnixTimeMilliseconds());
                     _healthCheckTask = HealthCheckLoopAsync(reconnectCts);
+                    _logger?.LogDebug("Stream {} connected", streamGuid);
                     if (_connectionHandler != null)
                     {
                         await _connectionHandler(_currentStream);
@@ -220,15 +231,18 @@ public class ResilenceDuplexStreamWrapper<TClient, TRequest, TResponse>(
             catch (OperationCanceledException) when (!_disconnectCts.IsCancellationRequested && !cancellationToken.IsCancellationRequested)
             {
                 // Healthcheck инициировал реконнект
+                _logger?.LogDebug("Required reconnection for stream: {}", streamGuid);
             }
             catch (RpcException ex) when (ex.StatusCode == StatusCode.Cancelled && _disconnectCts.IsCancellationRequested)
             {
                 // Нормальное завершение
+                _logger?.LogDebug("Stream {} disconnected", streamGuid);
                 return;
             }
-            catch (RpcException)
+            catch (RpcException ex)
             {
                 // Ошибка стрима — переподключаемся
+                _logger?.LogDebug("Exception {} in stream {}. Reconnection...", ex.StatusCode, streamGuid);
             }
             finally
             {
@@ -292,6 +306,7 @@ public class ResilenceDuplexStreamWrapper<TClient, TRequest, TResponse>(
 
                 if (elapsed >= _streamConfigurer.InactivityTimeoutMs)
                 {
+                    _logger?.LogDebug("Inactivity timeout exceeded for stream: {}", streamGuid);
                     reconnectCts.Cancel();
                     return;
                 }

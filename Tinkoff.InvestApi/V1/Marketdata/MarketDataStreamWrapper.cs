@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
 using Google.Protobuf;
 using Grpc.Core;
+using Microsoft.Extensions.Logging;
 using Tinkoff.InvestApi.Stream;
 using Tinkoff.InvestApi.Stream.Marketdata;
 using Tinkoff.InvestApi.Stream.Marketdata.Models;
@@ -16,6 +17,7 @@ namespace Tinkoff.InvestApi.V1.Marketdata;
 /// </summary>
 public class MarketDataStreamWrapper
 {
+    private readonly ILogger<MarketDataStreamWrapper>? _logger;
     private readonly ConcurrentQueue<SubscriptionRequestBase> _subscriptionRequests = new();
     private readonly ConcurrentDictionary<string, SubscriptionRequestBase> _activeSubscriptions = new();
     private readonly ConcurrentDictionary<string, TaskCompletionSource<MarketDataSubscriptionResult>> _pendingSubscriptions = new();
@@ -27,14 +29,17 @@ public class MarketDataStreamWrapper
     [Obsolete]
     public MarketDataStreamWrapper(
         ResilenceDuplexStreamConfigurer<MarketDataStreamService.MarketDataStreamServiceClient, MarketDataRequest, MarketDataResponse> configurer,
-        MarketDataStreamContext? context = null,
-        Func<MarketDataResponse, Task>? responseHandler = null)
+        Func<MarketDataResponse, Task>? responseHandler = null,
+        ILoggerFactory? loggerFactory = null)
     {
         _responseHandler = responseHandler;
         _streamWrapper = new ResilenceDuplexStreamWrapper<MarketDataStreamService.MarketDataStreamServiceClient, MarketDataRequest, MarketDataResponse>(
             configurer,
             HandleResponseAsync,
-            HandleConnectionAsync);
+            HandleConnectionAsync,
+            loggerFactory?.CreateLogger<ResilenceDuplexStreamWrapper<MarketDataStreamService.MarketDataStreamServiceClient, MarketDataRequest, MarketDataResponse>>()
+            );
+        _logger = loggerFactory?.CreateLogger<MarketDataStreamWrapper>();
     }
 
     /// <summary>

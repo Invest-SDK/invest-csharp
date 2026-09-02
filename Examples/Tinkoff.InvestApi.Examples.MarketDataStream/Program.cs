@@ -17,7 +17,8 @@ builder.Services.AddInvestApiClient((_, settings) =>
 });
 
 builder.Services.AddTransient<Example1>();
+builder.Services.AddTransient<Example2>();
 
 using IHost host = builder.Build();
-var example = host.Services.GetRequiredService<Example1>();
+var example = host.Services.GetRequiredService<Example2>();
 await example.Run();
