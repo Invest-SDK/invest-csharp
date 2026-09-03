@@ -222,7 +222,7 @@ public class MarketDataStreamManager
             MarketDataStreamWrapper? stream;
             lock (_lock)
             {
-                stream = _streams.FirstOrDefault(s => (capacity = _maxSubscriptionsPerStream - s.GetSubscriptionCount()) > 0);
+                stream = _streams.FirstOrDefault(s => (capacity = _maxSubscriptionsPerStream - s.GetSubscriptionCount() - s.GetPendingSubscriptionsCount()) > 0);
                 if (stream == null)
                 {
                     if (_streams.Count >= _maxStreams)

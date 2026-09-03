@@ -21,13 +21,15 @@ public class Example2(ILogger<Example2> logger, InvestApiClient investClient)
             builder.AddConsole();
             builder.SetMinimumLevel(LogLevel.Trace);
         });
-        var wrapper = new MarketDataStreamWrapper(configurer, new MarketDataStreamContext(), responseHandler: (response) =>
+        var manager = new MarketDataStreamManager(1, 3, configurer, loggerFactory);
+        manager.Context.OnCandle((response) =>
         {
-            logger.LogInformation(JsonSerializer.Serialize(response));
+            logger.LogInformation(JsonSerializer.Serialize(response.Response));
             return Task.CompletedTask;
-        }, loggerFactory);
-        var task = wrapper.ConnectAsync();
-        await wrapper.SubscribeCandlesAsync([new CandleInstrument() { Figi = "TCS00A10DT08", Interval = SubscriptionInterval.Month }]);
-        await task;
+        });
+        var task = manager.StartAsync();
+        var sub1 = manager.SubscribeCandlesAsync([new CandleInstrument() { Figi = "TCS00A10DT08", Interval = SubscriptionInterval.Month }]);
+        var sub2 = manager.SubscribeCandlesAsync([new CandleInstrument() { Figi = "BBG004730N88", Interval = SubscriptionInterval.Month }]);
+        await sub2;
     }
 }
