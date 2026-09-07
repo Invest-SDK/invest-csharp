@@ -82,6 +82,10 @@ public class ResilenceDuplexStreamWrapper<TClient, TRequest, TResponse>(
         {
             _ = RunWriteLoopAsync();
         }
+        if (!IsConnected())
+        {
+            _ = ConnectAsync(cancellationToken);
+        }
 
         var completionSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
         await _queue.Writer.WriteAsync(new QueueItem(request, completionSource, cancellationToken), cancellationToken);

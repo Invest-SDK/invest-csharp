@@ -1,6 +1,8 @@
 using Google.Protobuf;
 using Tinkoff.InvestApi.Stream.Marketdata.Models;
+using Tinkoff.InvestApi.Stream.Marketdata.Models.Wrapper;
 using Tinkoff.InvestApi.V1;
+using Tinkoff.InvestApi.V1.Marketdata.Models.Wrapper;
 
 namespace Tinkoff.InvestApi.Stream.Marketdata;
 
@@ -109,6 +111,64 @@ public static class MarketDataUtils
         return MarketDataAction.UNKNOWN;
     }
 
+    public static MarketDataInstrument GetInstrumentsFromResponse(MarketDataResponse response)
+    {
+
+        if (response.Candle != null && response.Candle.IsInitialized())
+        {
+            return new MarketDataInstrument
+            (
+                figi: response.Candle.Figi,
+                uid: response.Candle.InstrumentUid,
+                tickerClassCode: response.Candle.Ticker + "_" + response.Candle.ClassCode,
+                interval: response.Candle.Interval
+            );
+        }
+        else if (response.Trade != null && response.Trade.IsInitialized())
+        {
+            return new MarketDataInstrument
+            (
+                figi: response.Trade.Figi,
+                uid: response.Trade.InstrumentUid,
+                tickerClassCode: response.Trade.Ticker + "_" + response.Trade.ClassCode
+            );
+        }
+        else if (response.Orderbook != null && response.Orderbook.IsInitialized())
+        {
+            return new MarketDataInstrument(
+                figi: response.Orderbook.Figi,
+                uid: response.Orderbook.InstrumentUid,
+                tickerClassCode: response.Orderbook.Ticker + "_" + response.Orderbook.ClassCode,
+                depth: response.Orderbook.Depth,
+                orderBook: response.Orderbook.OrderBookType
+            );
+        }
+        else if (response.LastPrice != null && response.LastPrice.IsInitialized())
+        {
+            return new MarketDataInstrument(
+                figi: response.LastPrice.Figi,
+                uid: response.LastPrice.InstrumentUid,
+                tickerClassCode: response.LastPrice.Ticker + "_" + response.LastPrice.ClassCode
+            );
+        }
+        else if (response.OpenInterest != null && response.OpenInterest.IsInitialized())
+        {
+            return new MarketDataInstrument(
+                uid: response.OpenInterest.InstrumentUid,
+                tickerClassCode: response.OpenInterest.Ticker + "_" + response.OpenInterest.ClassCode
+            );
+        }
+        else if (response.TradingStatus != null && response.TradingStatus.IsInitialized())
+        {
+            return new MarketDataInstrument(
+                figi: response.TradingStatus.Figi,
+                uid: response.TradingStatus.InstrumentUid,
+                tickerClassCode: response.TradingStatus.Ticker + "_" + response.TradingStatus.ClassCode
+            );
+        }
+        return null;
+    }
+
     public static MarketDataResponseType? GetResponseType(MarketDataResponse response)
     {
 
@@ -116,17 +176,21 @@ public static class MarketDataUtils
         {
             return MarketDataResponseType.CANDLE;
         }
-        else if (response.LastPrice != null && response.LastPrice.IsInitialized())
+        else if (response.Trade != null && response.Trade.IsInitialized())
         {
-            return MarketDataResponseType.LAST_PRICE;
+            return MarketDataResponseType.TRADE;
         }
         else if (response.Orderbook != null && response.Orderbook.IsInitialized())
         {
             return MarketDataResponseType.ORDER_BOOK;
         }
-        else if (response.Trade != null && response.Trade.IsInitialized())
+        else if (response.LastPrice != null && response.LastPrice.IsInitialized())
         {
-            return MarketDataResponseType.TRADE;
+            return MarketDataResponseType.LAST_PRICE;
+        }
+        else if (response.OpenInterest != null && response.OpenInterest.IsInitialized())
+        {
+            return MarketDataResponseType.OPEN_INTEREST;
         }
         else if (response.TradingStatus != null && response.TradingStatus.IsInitialized())
         {

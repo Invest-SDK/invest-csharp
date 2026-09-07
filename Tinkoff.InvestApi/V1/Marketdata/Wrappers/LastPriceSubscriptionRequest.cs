@@ -1,3 +1,5 @@
+using Tinkoff.InvestApi.Stream.Marketdata.Models;
+
 namespace Tinkoff.InvestApi.V1.Marketdata.Wrappers;
 
 /// <summary>
@@ -5,10 +7,10 @@ namespace Tinkoff.InvestApi.V1.Marketdata.Wrappers;
 /// </summary>
 public class LastPriceSubscriptionRequest : SubscriptionRequestBase
 {
-    private readonly List<LastPriceInstrument> _instruments;
+    private readonly List<MarketDataInstrument> _instruments;
     private readonly SubscriptionAction _action;
 
-    public LastPriceSubscriptionRequest(SubscriptionAction action, IEnumerable<LastPriceInstrument> instruments)
+    public LastPriceSubscriptionRequest(SubscriptionAction action, IEnumerable<MarketDataInstrument> instruments)
     {
         _action = action;
         _instruments = instruments.ToList();
@@ -16,7 +18,7 @@ public class LastPriceSubscriptionRequest : SubscriptionRequestBase
 
     public override SubscriptionAction Action => _action;
 
-    public IReadOnlyList<LastPriceInstrument> Instruments => _instruments.AsReadOnly();
+    public IReadOnlyList<MarketDataInstrument> Instruments => _instruments.AsReadOnly();
 
     public override MarketDataRequest ToMarketDataRequest()
     {
@@ -25,7 +27,14 @@ public class LastPriceSubscriptionRequest : SubscriptionRequestBase
             SubscribeLastPriceRequest = new SubscribeLastPriceRequest
             {
                 SubscriptionAction = _action,
-                Instruments = { _instruments }
+                Instruments = { _instruments.Select(x =>
+                {
+                    return new LastPriceInstrument
+                    {
+                        InstrumentId = x.Uid,
+                        Figi = x.Figi
+                    };
+                }).ToList() }
             }
         };
     }

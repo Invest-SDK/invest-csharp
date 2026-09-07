@@ -1,3 +1,5 @@
+using Tinkoff.InvestApi.Stream.Marketdata.Models;
+
 namespace Tinkoff.InvestApi.V1.Marketdata.Wrappers;
 
 /// <summary>
@@ -5,10 +7,10 @@ namespace Tinkoff.InvestApi.V1.Marketdata.Wrappers;
 /// </summary>
 public class OrderBookSubscriptionRequest : SubscriptionRequestBase
 {
-    private readonly List<OrderBookInstrument> _instruments;
+    private readonly List<MarketDataInstrument> _instruments;
     private readonly SubscriptionAction _action;
 
-    public OrderBookSubscriptionRequest(SubscriptionAction action, IEnumerable<OrderBookInstrument> instruments)
+    public OrderBookSubscriptionRequest(SubscriptionAction action, IEnumerable<MarketDataInstrument> instruments)
     {
         _action = action;
         _instruments = instruments.ToList();
@@ -16,7 +18,7 @@ public class OrderBookSubscriptionRequest : SubscriptionRequestBase
 
     public override SubscriptionAction Action => _action;
 
-    public IReadOnlyList<OrderBookInstrument> Instruments => _instruments.AsReadOnly();
+    public IReadOnlyList<MarketDataInstrument> Instruments => _instruments.AsReadOnly();
 
     public override MarketDataRequest ToMarketDataRequest()
     {
@@ -25,7 +27,17 @@ public class OrderBookSubscriptionRequest : SubscriptionRequestBase
             SubscribeOrderBookRequest = new SubscribeOrderBookRequest
             {
                 SubscriptionAction = _action,
-                Instruments = { _instruments }
+                Instruments = { _instruments.Select(x =>
+                {
+                    return new OrderBookInstrument
+                    {
+                        InstrumentId = x.Uid,
+                        Figi = x.Figi,
+                        Depth = x.Depth ?? -1,
+                        OrderBookType = x.OrderBook ?? OrderBookType.Unspecified
+                    };
+                })
+                }
             }
         };
     }

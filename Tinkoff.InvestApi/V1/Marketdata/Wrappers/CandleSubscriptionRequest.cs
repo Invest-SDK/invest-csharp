@@ -1,3 +1,4 @@
+using Tinkoff.InvestApi.Stream.Marketdata.Models;
 using Tinkoff.InvestApi.V1.Marketdata.Wrappers;
 
 namespace Tinkoff.InvestApi.V1.Marketdata.Wrappers;
@@ -7,10 +8,11 @@ namespace Tinkoff.InvestApi.V1.Marketdata.Wrappers;
 /// </summary>
 public class CandleSubscriptionRequest : SubscriptionRequestBase
 {
-    private readonly List<CandleInstrument> _instruments;
+    private readonly List<MarketDataInstrument> _instruments;
     private readonly SubscriptionAction _action;
+    public DateTime? LastInteractionTime {get; set;}
 
-    public CandleSubscriptionRequest(SubscriptionAction action, IEnumerable<CandleInstrument> instruments)
+    public CandleSubscriptionRequest(SubscriptionAction action, IEnumerable<MarketDataInstrument> instruments)
     {
         _action = action;
         _instruments = instruments.ToList();
@@ -18,7 +20,7 @@ public class CandleSubscriptionRequest : SubscriptionRequestBase
 
     public override SubscriptionAction Action => _action;
 
-    public IReadOnlyList<CandleInstrument> Instruments => _instruments.AsReadOnly();
+    public IReadOnlyList<MarketDataInstrument> Instruments => _instruments.AsReadOnly();
 
     public override MarketDataRequest ToMarketDataRequest()
     {
@@ -27,7 +29,12 @@ public class CandleSubscriptionRequest : SubscriptionRequestBase
             SubscribeCandlesRequest = new SubscribeCandlesRequest
             {
                 SubscriptionAction = _action,
-                Instruments = { _instruments }
+                Instruments = { _instruments.Select(x => new CandleInstrument
+                {
+                    InstrumentId = x.Uid ?? "",
+                    Figi = x.Figi ?? "",
+                    Interval = (SubscriptionInterval) (int) (x.Interval ?? 0)
+                }).ToList() }
             }
         };
     }

@@ -23,16 +23,18 @@ public class MarketDataStreamWrapper
     private readonly ConcurrentDictionary<string, TaskCompletionSource<MarketDataSubscriptionResult>> _pendingSubscriptions = new();
     private readonly ResilenceDuplexStreamWrapper<MarketDataStreamService.MarketDataStreamServiceClient, MarketDataRequest, MarketDataResponse> _streamWrapper;
     private readonly Func<MarketDataResponse, Task>? _responseHandler;
+    private readonly Func<StreamInfo, Task>? _connectionHandler;
     private readonly SemaphoreSlim _connectionHandlerLock = new(1, 1);
     private volatile int _firstConnectionCompleted = 0;
 
-    [Obsolete]
     public MarketDataStreamWrapper(
         ResilenceDuplexStreamConfigurer<MarketDataStreamService.MarketDataStreamServiceClient, MarketDataRequest, MarketDataResponse> configurer,
         Func<MarketDataResponse, Task>? responseHandler = null,
+        Func<StreamInfo, Task>? connectionHandler = null,
         ILoggerFactory? loggerFactory = null)
     {
         _responseHandler = responseHandler;
+        _connectionHandler = connectionHandler;
         _streamWrapper = new ResilenceDuplexStreamWrapper<MarketDataStreamService.MarketDataStreamServiceClient, MarketDataRequest, MarketDataResponse>(
             configurer,
             HandleResponseAsync,
@@ -53,7 +55,7 @@ public class MarketDataStreamWrapper
     /// <summary>
     /// Подписывается на свечи
     /// </summary>
-    public async Task SubscribeCandlesAsync(IEnumerable<CandleInstrument> instruments, CancellationToken cancellationToken = default)
+    public async Task SubscribeCandlesAsync(IEnumerable<MarketDataInstrument> instruments, CancellationToken cancellationToken = default)
     {
         var request = new CandleSubscriptionRequest(SubscriptionAction.Subscribe, instruments);
         await AddSubscriptionAsync(request, cancellationToken);
@@ -62,7 +64,7 @@ public class MarketDataStreamWrapper
     /// <summary>
     /// Отписывается от свечей
     /// </summary>
-    public async Task UnsubscribeCandlesAsync(IEnumerable<CandleInstrument> instruments, CancellationToken cancellationToken = default)
+    public async Task UnsubscribeCandlesAsync(IEnumerable<MarketDataInstrument> instruments, CancellationToken cancellationToken = default)
     {
         var request = new CandleSubscriptionRequest(SubscriptionAction.Unsubscribe, instruments);
         await RemoveSubscriptionAsync(request, cancellationToken);
@@ -71,7 +73,7 @@ public class MarketDataStreamWrapper
     /// <summary>
     /// Подписывается на стакан
     /// </summary>
-    public async Task SubscribeOrderBookAsync(IEnumerable<OrderBookInstrument> instruments, CancellationToken cancellationToken = default)
+    public async Task SubscribeOrderBookAsync(IEnumerable<MarketDataInstrument> instruments, CancellationToken cancellationToken = default)
     {
         var request = new OrderBookSubscriptionRequest(SubscriptionAction.Subscribe, instruments);
         await AddSubscriptionAsync(request, cancellationToken);
@@ -80,7 +82,7 @@ public class MarketDataStreamWrapper
     /// <summary>
     /// Отписывается от стакана
     /// </summary>
-    public async Task UnsubscribeOrderBookAsync(IEnumerable<OrderBookInstrument> instruments, CancellationToken cancellationToken = default)
+    public async Task UnsubscribeOrderBookAsync(IEnumerable<MarketDataInstrument> instruments, CancellationToken cancellationToken = default)
     {
         var request = new OrderBookSubscriptionRequest(SubscriptionAction.Unsubscribe, instruments);
         await RemoveSubscriptionAsync(request, cancellationToken);
@@ -89,7 +91,7 @@ public class MarketDataStreamWrapper
     /// <summary>
     /// Подписывается на сделки
     /// </summary>
-    public async Task SubscribeTradesAsync(IEnumerable<TradeInstrument> instruments, CancellationToken cancellationToken = default)
+    public async Task SubscribeTradesAsync(IEnumerable<MarketDataInstrument> instruments, CancellationToken cancellationToken = default)
     {
         var request = new TradeSubscriptionRequest(SubscriptionAction.Subscribe, instruments);
         await AddSubscriptionAsync(request, cancellationToken);
@@ -98,7 +100,7 @@ public class MarketDataStreamWrapper
     /// <summary>
     /// Отписывается от сделок
     /// </summary>
-    public async Task UnsubscribeTradesAsync(IEnumerable<TradeInstrument> instruments, CancellationToken cancellationToken = default)
+    public async Task UnsubscribeTradesAsync(IEnumerable<MarketDataInstrument> instruments, CancellationToken cancellationToken = default)
     {
         var request = new TradeSubscriptionRequest(SubscriptionAction.Unsubscribe, instruments);
         await RemoveSubscriptionAsync(request, cancellationToken);
@@ -107,7 +109,7 @@ public class MarketDataStreamWrapper
     /// <summary>
     /// Подписывается на цену последней сделки
     /// </summary>
-    public async Task SubscribeLastPriceAsync(IEnumerable<LastPriceInstrument> instruments, CancellationToken cancellationToken = default)
+    public async Task SubscribeLastPriceAsync(IEnumerable<MarketDataInstrument> instruments, CancellationToken cancellationToken = default)
     {
         var request = new LastPriceSubscriptionRequest(SubscriptionAction.Subscribe, instruments);
         await AddSubscriptionAsync(request, cancellationToken);
@@ -116,7 +118,7 @@ public class MarketDataStreamWrapper
     /// <summary>
     /// Отписывается от цены последней сделки
     /// </summary>
-    public async Task UnsubscribeLastPriceAsync(IEnumerable<LastPriceInstrument> instruments, CancellationToken cancellationToken = default)
+    public async Task UnsubscribeLastPriceAsync(IEnumerable<MarketDataInstrument> instruments, CancellationToken cancellationToken = default)
     {
         var request = new LastPriceSubscriptionRequest(SubscriptionAction.Unsubscribe, instruments);
         await RemoveSubscriptionAsync(request, cancellationToken);
@@ -125,7 +127,7 @@ public class MarketDataStreamWrapper
     /// <summary>
     /// Подписывается на открытые позиции
     /// </summary>
-    public async Task SubscribeOpenInterestAsync(IEnumerable<InfoInstrument> instruments, CancellationToken cancellationToken = default)
+    public async Task SubscribeOpenInterestAsync(IEnumerable<MarketDataInstrument> instruments, CancellationToken cancellationToken = default)
     {
         var request = new OpenInterestSubscriptionRequest(SubscriptionAction.Subscribe, instruments);
         await AddSubscriptionAsync(request, cancellationToken);
@@ -134,7 +136,7 @@ public class MarketDataStreamWrapper
     /// <summary>
     /// Отписывается от открытых позиций
     /// </summary>
-    public async Task UnsubscribeOpenInterestAsync(IEnumerable<InfoInstrument> instruments, CancellationToken cancellationToken = default)
+    public async Task UnsubscribeOpenInterestAsync(IEnumerable<MarketDataInstrument> instruments, CancellationToken cancellationToken = default)
     {
         var request = new OpenInterestSubscriptionRequest(SubscriptionAction.Unsubscribe, instruments);
         await RemoveSubscriptionAsync(request, cancellationToken);
@@ -173,6 +175,10 @@ public class MarketDataStreamWrapper
     {
         return _pendingSubscriptions.Count;
     }
+
+    public ConcurrentDictionary<string, SubscriptionRequestBase> GetActiveSubscriptions => _activeSubscriptions;
+
+    public Guid Guid => _streamWrapper.StreamGuid;
 
     private async Task AddSubscriptionAsync(SubscriptionRequestBase request, CancellationToken cancellationToken)
     {
@@ -257,6 +263,11 @@ public class MarketDataStreamWrapper
                 return;
             }
 
+            if (_connectionHandler != null)
+            {
+                await _connectionHandler(new StreamInfo(_streamWrapper.StreamGuid, stream));
+            }
+
             // При переподключении отправляем все накопленные запросы на подписку
             var requests = _subscriptionRequests.ToList();
             foreach (var request in requests)
@@ -270,7 +281,6 @@ public class MarketDataStreamWrapper
         }
     }
 
-    [Obsolete]
     private async Task HandleResponseAsync(MarketDataResponse response)
     {
         // Обработка ответа через MarketDataUtils
@@ -299,6 +309,18 @@ public class MarketDataStreamWrapper
                 {
                     _activeSubscriptions.TryRemove(key, out _);
                 }
+            }
+        }
+
+        if (response.Candle != null && response.Candle.IsInitialized())
+        {
+            var key = GetSubscriptionKey(MarketDataResponseType.CANDLE, new MarketDataInstrument(figi: response.Candle.Figi, uid: response.Candle.InstrumentUid, tickerClassCode: response.Candle.Ticker + "_" + response.Candle.ClassCode, interval: response.Candle.Interval));
+            _activeSubscriptions.TryGetValue(key, out var sub);
+            if (sub != null)
+            {
+                var candleSub = (CandleSubscriptionRequest) sub;
+                candleSub.LastInteractionTime = DateTime.UtcNow;
+                _activeSubscriptions.AddOrUpdate(key, candleSub, (k, v) => candleSub);
             }
         }
 
@@ -331,16 +353,15 @@ public class MarketDataStreamWrapper
     {
         return request switch
         {
-            CandleSubscriptionRequest r => r.Instruments.Select(i => new MarketDataInstrument(figi: i.Figi, uid: i.InstrumentId, tickerClassCode: null, interval: i.Interval)).ToList(),
-            OrderBookSubscriptionRequest r => r.Instruments.Select(i => new MarketDataInstrument(figi: i.Figi, uid: i.InstrumentId, tickerClassCode: null, depth: i.Depth, orderBook: i.OrderBookType)).ToList(),
-            TradeSubscriptionRequest r => r.Instruments.Select(i => new MarketDataInstrument(figi: i.Figi, uid: i.InstrumentId, tickerClassCode: null)).ToList(),
-            LastPriceSubscriptionRequest r => r.Instruments.Select(i => new MarketDataInstrument(figi: i.Figi, uid: i.InstrumentId, tickerClassCode: null)).ToList(),
-            OpenInterestSubscriptionRequest r => r.Instruments.Select(i => new MarketDataInstrument(figi: i.Figi, uid: i.InstrumentId, tickerClassCode: null)).ToList(),
+            CandleSubscriptionRequest r => [.. r.Instruments],
+            OrderBookSubscriptionRequest r => [.. r.Instruments],
+            TradeSubscriptionRequest r => [.. r.Instruments],
+            LastPriceSubscriptionRequest r => [.. r.Instruments],
+            OpenInterestSubscriptionRequest r => [.. r.Instruments],
             _ => throw new ArgumentOutOfRangeException(nameof(request), request.GetType(), "Неизвестный тип запроса подписки")
         };
     }
 
-    [Obsolete]
     private static SubscriptionRequestBase CreateSubscriptionRequest(
         MarketDataResponseType responseType,
         MarketDataInstrument instrument,
@@ -348,11 +369,11 @@ public class MarketDataStreamWrapper
     {
         return responseType switch
         {
-            MarketDataResponseType.CANDLE => new CandleSubscriptionRequest(action, [new CandleInstrument { Figi = instrument.Figi, Interval = instrument.Interval.GetValueOrDefault() }]),
-            MarketDataResponseType.ORDER_BOOK => new OrderBookSubscriptionRequest(action, [new OrderBookInstrument { Figi = instrument.Figi, Depth = instrument.Depth ?? 0, OrderBookType = instrument.OrderBook ?? OrderBookType.All }]),
-            MarketDataResponseType.TRADE => new TradeSubscriptionRequest(action, [new TradeInstrument { Figi = instrument.Figi }]),
-            MarketDataResponseType.LAST_PRICE => new LastPriceSubscriptionRequest(action, [new LastPriceInstrument { Figi = instrument.Figi }]),
-            MarketDataResponseType.OPEN_INTEREST => new OpenInterestSubscriptionRequest(action, [new InfoInstrument { Figi = instrument.Figi }]),
+            MarketDataResponseType.CANDLE => new CandleSubscriptionRequest(action, [instrument]),
+            MarketDataResponseType.ORDER_BOOK => new OrderBookSubscriptionRequest(action, [instrument]),
+            MarketDataResponseType.TRADE => new TradeSubscriptionRequest(action, [instrument]),
+            MarketDataResponseType.LAST_PRICE => new LastPriceSubscriptionRequest(action, [instrument]),
+            MarketDataResponseType.OPEN_INTEREST => new OpenInterestSubscriptionRequest(action, [instrument]),
             _ => throw new ArgumentOutOfRangeException(nameof(responseType), responseType, null)
         };
     }

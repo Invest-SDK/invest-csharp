@@ -1,3 +1,5 @@
+using Tinkoff.InvestApi.Stream.Marketdata.Models;
+
 namespace Tinkoff.InvestApi.V1.Marketdata.Wrappers;
 
 /// <summary>
@@ -5,10 +7,10 @@ namespace Tinkoff.InvestApi.V1.Marketdata.Wrappers;
 /// </summary>
 public class TradeSubscriptionRequest : SubscriptionRequestBase
 {
-    private readonly List<TradeInstrument> _instruments;
+    private readonly List<MarketDataInstrument> _instruments;
     private readonly SubscriptionAction _action;
 
-    public TradeSubscriptionRequest(SubscriptionAction action, IEnumerable<TradeInstrument> instruments)
+    public TradeSubscriptionRequest(SubscriptionAction action, IEnumerable<MarketDataInstrument> instruments)
     {
         _action = action;
         _instruments = instruments.ToList();
@@ -16,7 +18,7 @@ public class TradeSubscriptionRequest : SubscriptionRequestBase
 
     public override SubscriptionAction Action => _action;
 
-    public IReadOnlyList<TradeInstrument> Instruments => _instruments.AsReadOnly();
+    public IReadOnlyList<MarketDataInstrument> Instruments => _instruments.AsReadOnly();
 
     public override MarketDataRequest ToMarketDataRequest()
     {
@@ -25,7 +27,14 @@ public class TradeSubscriptionRequest : SubscriptionRequestBase
             SubscribeTradesRequest = new SubscribeTradesRequest
             {
                 SubscriptionAction = _action,
-                Instruments = { _instruments }
+                Instruments = { _instruments.Select(x =>
+                {
+                    return new TradeInstrument
+                    {
+                        InstrumentId = x.Uid,
+                        Figi = x.Figi
+                    };
+                }).ToList() }
             }
         };
     }

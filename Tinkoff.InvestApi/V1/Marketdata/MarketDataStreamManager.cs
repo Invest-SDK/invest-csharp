@@ -6,6 +6,7 @@ using Tinkoff.InvestApi.Stream.Marketdata.Models.Wrapper;
 using Tinkoff.InvestApi.V1;
 using Tinkoff.InvestApi.V1.Marketdata;
 using Tinkoff.InvestApi.V1.Marketdata.Models.Wrapper;
+using Tinkoff.InvestApi.V1.Marketdata.Wrappers;
 
 namespace Tinkoff.InvestApi.Stream.Marketdata;
 
@@ -24,6 +25,7 @@ public class MarketDataStreamManager
     private readonly int _maxStreams;
     private readonly MarketDataStreamContext _context = new();
     private readonly ResilenceDuplexStreamConfigurer<MarketDataStreamService.MarketDataStreamServiceClient, MarketDataRequest, MarketDataResponse> _configurer;
+    private readonly MarketDataService.MarketDataServiceClient _client;
     private readonly ILoggerFactory? _loggerFactory;
     private readonly ILogger<MarketDataStreamManager>? _logger;
     private CancellationTokenSource _terminationCts = new();
@@ -32,11 +34,13 @@ public class MarketDataStreamManager
         int maxSubscriptionsPerStream,
         int maxStreams,
         ResilenceDuplexStreamConfigurer<MarketDataStreamService.MarketDataStreamServiceClient, MarketDataRequest, MarketDataResponse> configurer,
+        MarketDataService.MarketDataServiceClient client,
         ILoggerFactory? loggerFactory = null)
     {
         _maxSubscriptionsPerStream = maxSubscriptionsPerStream;
         _maxStreams = maxStreams;
         _configurer = configurer;
+        _client = client;
         _loggerFactory = loggerFactory;
         _logger = loggerFactory?.CreateLogger<MarketDataStreamManager>();
     }
@@ -98,106 +102,106 @@ public class MarketDataStreamManager
     /// <summary>
     /// Подписывается на свечи, распределяя инструменты между стримами пула.
     /// </summary>
-    public Task SubscribeCandlesAsync(IEnumerable<CandleInstrument> instruments, CancellationToken cancellationToken = default)
+    public Task SubscribeCandlesAsync(IEnumerable<MarketDataInstrument> instruments, CancellationToken cancellationToken = default)
         => RouteSubscribeAsync(
             instruments.ToList(),
-            i => SubscriptionKey(MarketDataResponseType.CANDLE, i.Figi, i.InstrumentId),
+            i => SubscriptionKey(MarketDataResponseType.CANDLE, i.Figi, i.Uid),
             (s, batch, ct) => s.SubscribeCandlesAsync(batch, ct),
             cancellationToken);
 
     /// <summary>
     /// Отписывается от свечей, направляя запрос в стрим, удерживающий подписку.
     /// </summary>
-    public Task UnsubscribeCandlesAsync(IEnumerable<CandleInstrument> instruments, CancellationToken cancellationToken = default)
+    public Task UnsubscribeCandlesAsync(IEnumerable<MarketDataInstrument> instruments, CancellationToken cancellationToken = default)
         => RouteUnsubscribeAsync(
             instruments.ToList(),
-            i => SubscriptionKey(MarketDataResponseType.CANDLE, i.Figi, i.InstrumentId),
+            i => SubscriptionKey(MarketDataResponseType.CANDLE, i.Figi, i.Uid),
             (s, batch, ct) => s.UnsubscribeCandlesAsync(batch, ct),
             cancellationToken);
 
     /// <summary>
     /// Подписывается на стаканы, распределяя инструменты между стримами пула.
     /// </summary>
-    public Task SubscribeOrderBookAsync(IEnumerable<OrderBookInstrument> instruments, CancellationToken cancellationToken = default)
+    public Task SubscribeOrderBookAsync(IEnumerable<MarketDataInstrument> instruments, CancellationToken cancellationToken = default)
         => RouteSubscribeAsync(
             instruments.ToList(),
-            i => SubscriptionKey(MarketDataResponseType.ORDER_BOOK, i.Figi, i.InstrumentId),
+            i => SubscriptionKey(MarketDataResponseType.ORDER_BOOK, i.Figi, i.Uid),
             (s, batch, ct) => s.SubscribeOrderBookAsync(batch, ct),
             cancellationToken);
 
     /// <summary>
     /// Отписывается от стаканов, направляя запрос в стрим, удерживающий подписку.
     /// </summary>
-    public Task UnsubscribeOrderBookAsync(IEnumerable<OrderBookInstrument> instruments, CancellationToken cancellationToken = default)
+    public Task UnsubscribeOrderBookAsync(IEnumerable<MarketDataInstrument> instruments, CancellationToken cancellationToken = default)
         => RouteUnsubscribeAsync(
             instruments.ToList(),
-            i => SubscriptionKey(MarketDataResponseType.ORDER_BOOK, i.Figi, i.InstrumentId),
+            i => SubscriptionKey(MarketDataResponseType.ORDER_BOOK, i.Figi, i.Uid),
             (s, batch, ct) => s.UnsubscribeOrderBookAsync(batch, ct),
             cancellationToken);
 
     /// <summary>
     /// Подписывается на сделки, распределяя инструменты между стримами пула.
     /// </summary>
-    public Task SubscribeTradesAsync(IEnumerable<TradeInstrument> instruments, CancellationToken cancellationToken = default)
+    public Task SubscribeTradesAsync(IEnumerable<MarketDataInstrument> instruments, CancellationToken cancellationToken = default)
         => RouteSubscribeAsync(
             instruments.ToList(),
-            i => SubscriptionKey(MarketDataResponseType.TRADE, i.Figi, i.InstrumentId),
+            i => SubscriptionKey(MarketDataResponseType.TRADE, i.Figi, i.Uid),
             (s, batch, ct) => s.SubscribeTradesAsync(batch, ct),
             cancellationToken);
 
     /// <summary>
     /// Отписывается от сделок, направляя запрос в стрим, удерживающий подписку.
     /// </summary>
-    public Task UnsubscribeTradesAsync(IEnumerable<TradeInstrument> instruments, CancellationToken cancellationToken = default)
+    public Task UnsubscribeTradesAsync(IEnumerable<MarketDataInstrument> instruments, CancellationToken cancellationToken = default)
         => RouteUnsubscribeAsync(
             instruments.ToList(),
-            i => SubscriptionKey(MarketDataResponseType.TRADE, i.Figi, i.InstrumentId),
+            i => SubscriptionKey(MarketDataResponseType.TRADE, i.Figi, i.Uid),
             (s, batch, ct) => s.UnsubscribeTradesAsync(batch, ct),
             cancellationToken);
 
     /// <summary>
     /// Подписывается на цены последней сделки, распределяя инструменты между стримами пула.
     /// </summary>
-    public Task SubscribeLastPriceAsync(IEnumerable<LastPriceInstrument> instruments, CancellationToken cancellationToken = default)
+    public Task SubscribeLastPriceAsync(IEnumerable<MarketDataInstrument> instruments, CancellationToken cancellationToken = default)
         => RouteSubscribeAsync(
             instruments.ToList(),
-            i => SubscriptionKey(MarketDataResponseType.LAST_PRICE, i.Figi, i.InstrumentId),
+            i => SubscriptionKey(MarketDataResponseType.LAST_PRICE, i.Figi, i.Uid),
             (s, batch, ct) => s.SubscribeLastPriceAsync(batch, ct),
             cancellationToken);
 
     /// <summary>
     /// Отписывается от цен последней сделки, направляя запрос в стрим, удерживающий подписку.
     /// </summary>
-    public Task UnsubscribeLastPriceAsync(IEnumerable<LastPriceInstrument> instruments, CancellationToken cancellationToken = default)
+    public Task UnsubscribeLastPriceAsync(IEnumerable<MarketDataInstrument> instruments, CancellationToken cancellationToken = default)
         => RouteUnsubscribeAsync(
             instruments.ToList(),
-            i => SubscriptionKey(MarketDataResponseType.LAST_PRICE, i.Figi, i.InstrumentId),
+            i => SubscriptionKey(MarketDataResponseType.LAST_PRICE, i.Figi, i.Uid),
             (s, batch, ct) => s.UnsubscribeLastPriceAsync(batch, ct),
             cancellationToken);
 
     /// <summary>
     /// Подписывается на открытые позиции, распределяя инструменты между стримами пула.
     /// </summary>
-    public Task SubscribeOpenInterestAsync(IEnumerable<InfoInstrument> instruments, CancellationToken cancellationToken = default)
+    public Task SubscribeOpenInterestAsync(IEnumerable<MarketDataInstrument> instruments, CancellationToken cancellationToken = default)
         => RouteSubscribeAsync(
             instruments.ToList(),
-            i => SubscriptionKey(MarketDataResponseType.OPEN_INTEREST, i.Figi, i.InstrumentId),
+            i => SubscriptionKey(MarketDataResponseType.OPEN_INTEREST, i.Figi, i.Uid),
             (s, batch, ct) => s.SubscribeOpenInterestAsync(batch, ct),
             cancellationToken);
 
     /// <summary>
     /// Отписывается от открытых позиций, направляя запрос в стрим, удерживающий подписку.
     /// </summary>
-    public Task UnsubscribeOpenInterestAsync(IEnumerable<InfoInstrument> instruments, CancellationToken cancellationToken = default)
+    public Task UnsubscribeOpenInterestAsync(IEnumerable<MarketDataInstrument> instruments, CancellationToken cancellationToken = default)
         => RouteUnsubscribeAsync(
             instruments.ToList(),
-            i => SubscriptionKey(MarketDataResponseType.OPEN_INTEREST, i.Figi, i.InstrumentId),
+            i => SubscriptionKey(MarketDataResponseType.OPEN_INTEREST, i.Figi, i.Uid),
             (s, batch, ct) => s.UnsubscribeOpenInterestAsync(batch, ct),
             cancellationToken);
 
     private MarketDataStreamWrapper CreateStream()
     {
-        return new MarketDataStreamWrapper(_configurer, RouteResponseAsync, _loggerFactory);
+        return new MarketDataStreamWrapper(_configurer, RouteResponseAsync, RecoveringConnectionHandler, _loggerFactory);
     }
 
     /// <summary>
@@ -326,9 +330,71 @@ public class MarketDataStreamManager
         }
     }
 
+    private async Task RecoveringConnectionHandler(StreamInfo streamInfo)
+    {
+        var stream = _streams.FirstOrDefault(s => s.Guid == streamInfo.Guid);
+        if (stream != null)
+        {
+            var candleSubscriptions = stream.GetActiveSubscriptions
+                .Where(s => s.Value is CandleSubscriptionRequest)
+                .Select(s => s.Value)
+                .Cast<CandleSubscriptionRequest>()
+                .ToList();
+            foreach (CandleSubscriptionRequest sub in candleSubscriptions)
+            {
+                await RecoverCandleSubscription(sub.Instruments[0], sub.LastInteractionTime, streamInfo.Guid);
+            }
+        }
+    }
+
+    private async Task RecoverCandleSubscription(MarketDataInstrument first, DateTime? lastInteractionTime, Guid guid)
+    {
+        _logger?.LogDebug("Recovering candle subscription for {Figi}...", first.Figi);
+        var now = DateTime.UtcNow;
+        int intervalNumber = (int)(first.Interval ?? SubscriptionInterval.Unspecified);
+        var request = new GetCandlesRequest
+        {
+            InstrumentId = first.Uid,
+            Interval = Enum.IsDefined(typeof(CandleInterval), intervalNumber) ? (CandleInterval)intervalNumber : CandleInterval.Unspecified,
+            From = lastInteractionTime.ToTimestampOrNull(),
+            To = now.ToTimestamp(),
+        };
+        var response = _client.GetCandles(request);
+        var candles = response.Candles.Where(c => c.IsComplete)
+            .Select(c => new CandleWrapper(MapCandle(c, first), IsHistorical: true))
+            .ToList();
+        candles.Sort((c1, c2) => c1.Time().Value.CompareTo(c2.Time().Value));
+        candles.ForEach(async c =>
+        {
+            _logger?.LogDebug("Recovered candle: {Candle}", c);
+            await _context.PushCandleAsync(c);  
+        });
+    }
+
     private static string SubscriptionKey(MarketDataResponseType responseType, string? figi, string? instrumentId)
     {
         return $"{responseType}:{figi}:{instrumentId}:";
+    }
+
+    private static Candle MapCandle(HistoricCandle candle, MarketDataInstrument instrument)
+    {
+        return new Candle
+        {
+            InstrumentUid = instrument.Uid,
+            Figi = instrument.Figi,
+            Ticker = instrument.TickerClassCode?.Split("_")[0],
+            ClassCode = instrument.TickerClassCode?.Split("_")[1],
+            Interval = instrument.Interval ?? SubscriptionInterval.Unspecified,
+            Open = candle.Open,
+            Close = candle.Close,
+            High = candle.High,
+            Low = candle.Low,
+            Time = candle.Time,
+            Volume = candle.Volume,
+            VolumeBuy = candle.VolumeBuy,
+            VolumeSell = candle.VolumeSell,
+            CandleSourceType = candle.CandleSource,
+        };
     }
 
     public async ValueTask DisposeAsync()
