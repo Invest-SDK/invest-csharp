@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using Tinkoff.InvestApi.Stream;
 using Tinkoff.InvestApi.Stream.Marketdata;
 using Tinkoff.InvestApi.Stream.Marketdata.Models;
+using Tinkoff.InvestApi.Stream.Marketdata.Models.Wrapper;
 using Tinkoff.InvestApi.V1;
 using Tinkoff.InvestApi.V1.Marketdata;
 
@@ -10,26 +11,33 @@ namespace Tinkoff.InvestApi.Examples.MarketDataStream;
 
 public class Example2(ILogger<Example2> logger, InvestApiClient investClient)
 {
-    [Obsolete]
+
     public async Task Run()
     {
-        var configurer = new ResilenceDuplexStreamConfigurer<MarketDataStreamService.MarketDataStreamServiceClient, MarketDataRequest, MarketDataResponse>(investClient.MarketDataStream, (client, options) => client.MarketDataStream(options));
-        configurer.WithPingDelayMs(1000)
-        .WithInactivityTimeoutMs(10000);
+        var configurer = new MarketDataManagerConfigurer(investClient.MarketDataStream, (client, options) => client.MarketDataStream(options))
+            .WithPingDelayMs(1000)
+            .WithInactivityTimeoutMs(10000)
+            .WithMaxSubscriptionsPerStream(20);
         var loggerFactory = LoggerFactory.Create(builder =>
         {
             builder.AddConsole();
             builder.SetMinimumLevel(LogLevel.Trace);
         });
-        var manager = new MarketDataStreamManager(2, 2, configurer, investClient.MarketData, loggerFactory);
-        manager.Context.OnCandle((response) =>
+        var manager = new MarketDataStreamManager(configurer, investClient.MarketData, loggerFactory);
+
+        var instruments = investClient.Instruments.Shares().Instruments
+        .Where(x => x.ApiTradeAvailableFlag && x.TradingStatus == SecurityTradingStatus.NormalTrading)
+        .Select(x => new MarketDataInstrument(uid: x.Uid, interval: SubscriptionInterval.OneMinute))
+        .ToList();
+        Func<CandleWrapper, Task> onCandleHandler = (CandleWrapper candle) => 
         {
-            logger.LogInformation(JsonSerializer.Serialize(response.Response));
+            logger?.LogInformation("Candle: {Candle}", JsonSerializer.Serialize(candle));
             return Task.CompletedTask;
-        });
-        var sub1 = manager.SubscribeCandlesAsync([new MarketDataInstrument(figi: "TCS00A10DT08", interval: SubscriptionInterval.OneMinute)]);
-        var sub2 = manager.SubscribeCandlesAsync([new MarketDataInstrument(figi: "BBG004730N88", interval: SubscriptionInterval.OneMinute)]);
-        var sub3 = manager.SubscribeCandlesAsync([new MarketDataInstrument(figi: "TCS80A101X50", interval: SubscriptionInterval.OneMinute)]);
-        await sub2;
+        };
+        var _ = manager.StartAsync();
+        await manager.SubscribeCandlesAsync(instruments, onCandle: onCandleHandler);
+        await Task.Delay(10000);
+        await manager.UnsubscribeCandlesAsync(instruments);
+        await manager.DisposeAsync();
     }
 }

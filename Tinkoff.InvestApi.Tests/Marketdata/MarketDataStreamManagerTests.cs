@@ -64,6 +64,46 @@ public class MarketDataStreamManagerTests
     }
 
     [Fact]
+    public async Task TestSubscribeByPartialInstrumentCompletes()
+    {
+        _output.WriteLine($"[{nameof(TestSubscribeByPartialInstrumentCompletes)}] Начало теста");
+        MarketDataStreamMockService.Reset();
+
+        var (manager, _) = await CreateStartedManagerAsync();
+        try
+        {
+            // Инструмент задан только по FIGI (uid и TickerClassCode не заполнены).
+            var instrument = NewInstrument(figi: "FIGI_ONLY", uid: string.Empty, tickerClassCode: string.Empty);
+            var received = new ConcurrentBag<string>();
+
+            // Подписка должна завершиться, даже если инструмент задан не полностью:
+            // ответ сопоставляется с ожиданием по указанным полям, а не по полному ключу.
+            _output.WriteLine($"[{nameof(TestSubscribeByPartialInstrumentCompletes)}] Подписка по FIGI_ONLY (без uid/tickerClassCode)");
+            var subscribeTask = manager.SubscribeTradesAsync(
+                new[] { instrument },
+                onTrade: t => { received.Add(t.InstrumentUid()); return Task.CompletedTask; });
+
+            await Task.WhenAny(subscribeTask, Task.Delay(2000));
+            subscribeTask.IsCompleted.Should().BeTrue("подписка по неполному инструменту не должна зависать");
+            await subscribeTask;
+
+            _output.WriteLine($"[{nameof(TestSubscribeByPartialInstrumentCompletes)}] Подписка завершена, ожидаем сделку...");
+            await WaitUntilAsync(() => received.Count >= 1,
+                log: () => _output.WriteLine($"[{nameof(TestSubscribeByPartialInstrumentCompletes)}] Ожидание сделки: {received.Count}"));
+
+            // Мок при пустом uid подставляет figi, поэтому пуш приходит с полным id (figi + uid),
+            // а обработчик был зарегистрирован только по figi — доставка работает за счёт частичного
+            // сопоставления id в DispatchLocalAsync.
+            _output.WriteLine($"[{nameof(TestSubscribeByPartialInstrumentCompletes)}] Получено сделок: [{string.Join(", ", received)}]");
+            received.Should().ContainSingle().Which.Should().Be("FIGI_ONLY");
+        }
+        finally
+        {
+            await manager.DisposeAsync();
+        }
+    }
+
+    [Fact]
     public async Task TestSubscribeCandlesWithDifferentIntervalsForSameInstrument()
     {
         _output.WriteLine($"[{nameof(TestSubscribeCandlesWithDifferentIntervalsForSameInstrument)}] Начало теста");
@@ -277,18 +317,17 @@ public class MarketDataStreamManagerTests
         var streamClient = new MarketDataStreamService.MarketDataStreamServiceClient(channel);
         var marketDataClient = new MarketDataService.MarketDataServiceClient(channel);
 
-        var configurer = new ResilenceDuplexStreamConfigurer<
-            MarketDataStreamService.MarketDataStreamServiceClient,
-            MarketDataRequest,
-            MarketDataResponse>(
+        var configurer = new MarketDataManagerConfigurer(
             streamClient,
             (c, co) => c.MarketDataStream(co))
+            .WithMaxSubscriptionsPerStream(maxSubscriptionsPerStream)
+            .WithMaxStreams(maxStreams)
             .WithConnectTimeoutMs(5000)
             .WithPingDelayMs(500)
             .WithInactivityTimeoutMs(5000)
             .WithBackOffDelayMs(100);
 
-        var manager = new MarketDataStreamManager(maxSubscriptionsPerStream, maxStreams, configurer, marketDataClient);
+        var manager = new MarketDataStreamManager(configurer, marketDataClient);
         await manager.StartAsync();
         return (manager, channel);
     }

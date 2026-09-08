@@ -20,7 +20,7 @@ public class MarketDataStreamWrapper
     private readonly ILogger<MarketDataStreamWrapper>? _logger;
     private readonly ConcurrentQueue<SubscriptionRequestBase> _subscriptionRequests = new();
     private readonly ConcurrentDictionary<string, SubscriptionRequestBase> _activeSubscriptions = new();
-    private readonly ConcurrentDictionary<string, TaskCompletionSource<MarketDataSubscriptionResult>> _pendingSubscriptions = new();
+    private readonly ConcurrentDictionary<PendingSubscriptionKey, TaskCompletionSource<MarketDataSubscriptionResult>> _pendingSubscriptions = new();
     private readonly ResilenceDuplexStreamWrapper<MarketDataStreamService.MarketDataStreamServiceClient, MarketDataRequest, MarketDataResponse> _streamWrapper;
     private readonly Func<MarketDataResponse, Task>? _responseHandler;
     private readonly Func<StreamInfo, Task>? _connectionHandler;
@@ -205,15 +205,17 @@ public class MarketDataStreamWrapper
         // Создаём ключи для всех инструментов в запросе
         var responseType = GetResponseTypeFromRequest(request);
         var instruments = GetInstrumentsFromRequest(request);
-        var keys = instruments.Select(i => GetSubscriptionKey(responseType, i)).ToList();
 
         // Создаём TaskCompletionSource для каждого инструмента и захватываем задачи локально:
-        // обработчик ответа удаляет ключи из _pendingSubscriptions, поэтому перечитывать их нельзя.
+        // обработчик ответа удаляет записи из _pendingSubscriptions, поэтому перечитывать их нельзя.
+        // Ключ — обёртка с responseType и инструментом: Equals сопоставляет по указанным полям,
+        // поэтому ответ с полным инструментом находит ожидание даже при неполном запросе.
         var pending = new List<(string Key, Task<MarketDataSubscriptionResult> Task)>();
-        foreach (var key in keys)
+        foreach (var i in instruments)
         {
+            var key = GetSubscriptionKey(responseType, i);
             var tcs = new TaskCompletionSource<MarketDataSubscriptionResult>(TaskCreationOptions.RunContinuationsAsynchronously);
-            _pendingSubscriptions.TryAdd(key, tcs);
+            _pendingSubscriptions.TryAdd(new PendingSubscriptionKey(responseType, i), tcs);
             pending.Add((key, tcs.Task));
         }
 
@@ -241,15 +243,17 @@ public class MarketDataStreamWrapper
         // Создаём ключи для всех инструментов в запросе
         var responseType = GetResponseTypeFromRequest(request);
         var instruments = GetInstrumentsFromRequest(request);
-        var keys = instruments.Select(i => GetSubscriptionKey(responseType, i)).ToList();
 
         // Создаём TaskCompletionSource для каждого инструмента и захватываем задачи локально:
-        // обработчик ответа удаляет ключи из _pendingSubscriptions, поэтому перечитывать их нельзя.
+        // обработчик ответа удаляет записи из _pendingSubscriptions, поэтому перечитывать их нельзя.
+        // Ключ — обёртка с responseType и инструментом: Equals сопоставляет по указанным полям,
+        // поэтому ответ с полным инструментом находит ожидание даже при неполном запросе.
         var pending = new List<(string Key, Task<MarketDataSubscriptionResult> Task)>();
-        foreach (var key in keys)
+        foreach (var i in instruments)
         {
+            var key = GetSubscriptionKey(responseType, i);
             var tcs = new TaskCompletionSource<MarketDataSubscriptionResult>(TaskCreationOptions.RunContinuationsAsynchronously);
-            _pendingSubscriptions.TryAdd(key, tcs);
+            _pendingSubscriptions.TryAdd(new PendingSubscriptionKey(responseType, i), tcs);
             pending.Add((key, tcs.Task));
         }
 
@@ -308,13 +312,14 @@ public class MarketDataStreamWrapper
             // Обновляем активные подписки на основе результата и завершаем ожидающие задачи
             foreach (var kvp in subscriptionResult.SubsciptionStatusDictionary)
             {
-                var key = GetSubscriptionKey(subscriptionResult.ResponseType, kvp.Key);
-
-                // Завершаем TaskCompletionSource для этой подписки
-                if (_pendingSubscriptions.TryRemove(key, out var tcs))
+                // Завершаем ожидающую подписку: ключ-обёртка сопоставляется по указанным в запросе
+                // полям инструмента, поэтому ответ с полным инструментом находит ожидание неполного запроса.
+                if (_pendingSubscriptions.TryRemove(new PendingSubscriptionKey(subscriptionResult.ResponseType, kvp.Key), out var tcs))
                 {
                     tcs.TrySetResult(subscriptionResult);
                 }
+
+                var key = GetSubscriptionKey(subscriptionResult.ResponseType, kvp.Key);
 
                 // Обновляем активные подписки
                 if (subscriptionResult.Action == MarketDataAction.SUBSCRIBE &&
@@ -332,7 +337,7 @@ public class MarketDataStreamWrapper
 
         if (response.Candle != null && response.Candle.IsInitialized())
         {
-            var key = GetSubscriptionKey(MarketDataResponseType.CANDLE, new MarketDataInstrument(figi: response.Candle.Figi, uid: response.Candle.InstrumentUid, tickerClassCode: response.Candle.Ticker + "_" + response.Candle.ClassCode, interval: response.Candle.Interval));
+            var key = GetSubscriptionKey(MarketDataResponseType.CANDLE, new MarketDataInstrument(figi: response.Candle.Figi, uid: response.Candle.InstrumentUid, interval: response.Candle.Interval));
             _activeSubscriptions.TryGetValue(key, out var sub);
             if (sub != null)
             {
@@ -351,7 +356,7 @@ public class MarketDataStreamWrapper
 
     private static string GetSubscriptionKey(MarketDataResponseType responseType, MarketDataInstrument instrument)
     {
-        return $"{responseType}:{instrument.Figi}:{instrument.Uid}:{instrument.TickerClassCode}";
+        return $"{responseType}:{instrument.Figi}:{instrument.Uid}";
     }
 
     private static MarketDataResponseType GetResponseTypeFromRequest(SubscriptionRequestBase request)
@@ -397,6 +402,50 @@ public class MarketDataStreamWrapper
             MarketDataResponseType.TRADING_STATUS => new TradingStatusesSubscriptionRequest(action, [instrument]),
             _ => throw new ArgumentOutOfRangeException(nameof(responseType), responseType, null)
         };
+    }
+
+    /// <summary>
+    /// Проверяет, совпадает ли инструмент ответа с инструментом запроса по полям,
+    /// указанным в запросе. Поля, оставленные в запросе пустыми, не проверяются.
+    /// </summary>
+    private static bool InstrumentsMatch(MarketDataInstrument request, MarketDataInstrument response)
+    {
+        if (!string.IsNullOrEmpty(request.Figi) && request.Figi != response.Figi) return false;
+        if (!string.IsNullOrEmpty(request.Uid) && request.Uid != response.Uid) return false;
+        return true;
+    }
+
+    /// <summary>
+    /// Ключ ожидающей подписки: тип ответа и инструмент запроса.
+    /// Equals сопоставляет инструменты по указанным в запросе полям, поэтому ответ с полным
+    /// инструментом находит ожидание, созданное по неполному запросу (например, только по FIGI).
+    /// GetHashCode зависит только от типа ответа — так ключи, считающиеся равными по Equals,
+    /// гарантированно попадают в одну корзину словаря.
+    /// </summary>
+    private sealed class PendingSubscriptionKey : IEquatable<PendingSubscriptionKey>
+    {
+        public PendingSubscriptionKey(MarketDataResponseType responseType, MarketDataInstrument instrument)
+        {
+            ResponseType = responseType;
+            Instrument = instrument;
+        }
+
+        private MarketDataResponseType ResponseType { get; }
+        private MarketDataInstrument Instrument { get; }
+
+        public bool Equals(PendingSubscriptionKey? other)
+        {
+            if (other is null) return false;
+            if (ResponseType != other.ResponseType) return false;
+            return InstrumentsMatch(Instrument, other.Instrument);
+        }
+
+        public override bool Equals(object? obj) => obj is PendingSubscriptionKey other && Equals(other);
+
+        public override int GetHashCode() => ResponseType.GetHashCode();
+
+        public override string ToString() =>
+            $"{ResponseType}:{Instrument.Figi}:{Instrument.Uid}";
     }
 
     public async ValueTask DisposeAsync()

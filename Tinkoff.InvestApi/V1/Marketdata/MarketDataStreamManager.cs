@@ -31,15 +31,13 @@ public class MarketDataStreamManager
     private CancellationTokenSource _terminationCts = new();
 
     public MarketDataStreamManager(
-        int maxSubscriptionsPerStream,
-        int maxStreams,
-        ResilenceDuplexStreamConfigurer<MarketDataStreamService.MarketDataStreamServiceClient, MarketDataRequest, MarketDataResponse> configurer,
+        MarketDataManagerConfigurer configurer,
         MarketDataService.MarketDataServiceClient client,
         ILoggerFactory? loggerFactory = null)
     {
-        _maxSubscriptionsPerStream = maxSubscriptionsPerStream;
-        _maxStreams = maxStreams;
         _configurer = configurer;
+        _maxSubscriptionsPerStream = configurer.MaxSubscriptionsPerStream;
+        _maxStreams = configurer.MaxStreams;
         _client = client;
         _loggerFactory = loggerFactory;
         _logger = loggerFactory?.CreateLogger<MarketDataStreamManager>();
@@ -426,21 +424,25 @@ public class MarketDataStreamManager
         }
     }
 
-    private async Task RecoverCandleSubscription(MarketDataInstrument first, DateTime? lastInteractionTime, Guid guid)
+    private async Task RecoverCandleSubscription(MarketDataInstrument instrument, DateTime? lastInteractionTime, Guid guid)
     {
-        _logger?.LogDebug("Recovering candle subscription for {Figi}...", first.Figi);
+        if (lastInteractionTime == null)
+        {
+            return;
+        }
+        _logger?.LogDebug("Recovering candle subscription for {Figi}...", instrument.Figi);
         var now = DateTime.UtcNow;
-        int intervalNumber = (int)(first.Interval ?? SubscriptionInterval.Unspecified);
+        int intervalNumber = (int)(instrument.Interval ?? SubscriptionInterval.Unspecified);
         var request = new GetCandlesRequest
         {
-            InstrumentId = first.Uid,
+            InstrumentId = instrument.Uid,
             Interval = Enum.IsDefined(typeof(CandleInterval), intervalNumber) ? (CandleInterval)intervalNumber : CandleInterval.Unspecified,
             From = lastInteractionTime.ToTimestampOrNull(),
             To = now.ToTimestamp(),
         };
         var response = _client.GetCandles(request);
         var candles = response.Candles.Where(c => c.IsComplete)
-            .Select(c => new CandleWrapper(MapCandle(c, first), IsHistorical: true))
+            .Select(c => new CandleWrapper(MapCandle(c, instrument), IsHistorical: true))
             .ToList();
         candles.Sort((c1, c2) => c1.Time().Value.CompareTo(c2.Time().Value));
         candles.ForEach(async c =>
@@ -529,19 +531,20 @@ public class MarketDataStreamManager
 
     /// <summary>
     /// Ключ инструмента для локальных обработчиков. Для открытых позиций ответ не содержит FIGI,
-    /// поэтому ключ строится только по UID; для остальных типов — по FIGI и UID.
+    /// поэтому ключ строится только по UID. Дискриминатор — интервал (свечи) или тип (стакан);
+    /// для остальных типов пуст. Id сопоставляется по указанным полям (см. LocalSubscriptionKey).
     /// </summary>
-    private static string LocalInstrumentKey(MarketDataResponseType responseType, MarketDataInstrument item)
+    private static LocalSubscriptionKey LocalInstrumentKey(MarketDataResponseType responseType, MarketDataInstrument item)
     {
         return responseType switch
         {
             // Свечи одного инструмента с разными интервалами обрабатываются раздельно.
-            MarketDataResponseType.CANDLE => $"{item.Figi}:{item.Uid}:{item.Interval}",
+            MarketDataResponseType.CANDLE => new LocalSubscriptionKey(item.Figi, item.Uid, item.Interval?.ToString() ?? string.Empty),
             // Стакан: подписка с конкретным типом получает только пуши того же типа,
             // а ALL (или незаданный тип) — пуши любого типа.
-            MarketDataResponseType.ORDER_BOOK => $"{item.Figi}:{item.Uid}:{item.OrderBook ?? OrderBookType.All}",
-            MarketDataResponseType.OPEN_INTEREST => $"{item.Uid}",
-            _ => $"{item.Figi}:{item.Uid}"
+            MarketDataResponseType.ORDER_BOOK => new LocalSubscriptionKey(item.Figi, item.Uid, (item.OrderBook ?? OrderBookType.All).ToString()),
+            MarketDataResponseType.OPEN_INTEREST => new LocalSubscriptionKey(string.Empty, item.Uid, string.Empty),
+            _ => new LocalSubscriptionKey(item.Figi, item.Uid, string.Empty)
         };
     }
 

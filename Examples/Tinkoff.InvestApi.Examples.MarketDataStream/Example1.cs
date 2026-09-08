@@ -7,7 +7,7 @@ namespace Tinkoff.InvestApi.Examples.MarketDataStream;
 
 public class Example1(ILogger<Example1> logger, InvestApiClient client)
 {
-    [Obsolete]
+
     public async Task Run()
     {
         var configuration = new ResilenceDuplexStreamConfigurer<MarketDataStreamService.MarketDataStreamServiceClient, MarketDataRequest, MarketDataResponse>(

@@ -141,7 +141,7 @@ public class MarketDataStreamMockService : MarketDataStreamService.MarketDataStr
                     sub.Instruments.Select(i => new TradeSubscription
                     {
                         Figi = i.Figi,
-                        InstrumentUid = i.InstrumentId,
+                        InstrumentUid = string.IsNullOrEmpty(i.InstrumentId) ? i.Figi : i.InstrumentId,
                         SubscriptionStatus = SubscriptionStatus.Success,
                         SubscriptionAction = SubscriptionAction.Subscribe,
                         Ticker = ticker,
@@ -162,7 +162,7 @@ public class MarketDataStreamMockService : MarketDataStreamService.MarketDataStr
                     Trade = new Trade
                     {
                         Figi = i.Figi,
-                        InstrumentUid = i.InstrumentId,
+                        InstrumentUid = string.IsNullOrEmpty(i.InstrumentId) ? i.Figi : i.InstrumentId,
                         Ticker = ticker,
                         ClassCode = classCode,
                         Direction = TradeDirection.Buy,
@@ -192,7 +192,7 @@ public class MarketDataStreamMockService : MarketDataStreamService.MarketDataStr
                     sub.Instruments.Select(i => new CandleSubscription
                     {
                         Figi = i.Figi,
-                        InstrumentUid = i.InstrumentId,
+                        InstrumentUid = string.IsNullOrEmpty(i.InstrumentId) ? i.Figi : i.InstrumentId,
                         Interval = i.Interval,
                         SubscriptionStatus = SubscriptionStatus.Success,
                         SubscriptionAction = SubscriptionAction.Subscribe,
@@ -215,7 +215,7 @@ public class MarketDataStreamMockService : MarketDataStreamService.MarketDataStr
                     Candle = new Candle
                     {
                         Figi = i.Figi,
-                        InstrumentUid = i.InstrumentId,
+                        InstrumentUid = string.IsNullOrEmpty(i.InstrumentId) ? i.Figi : i.InstrumentId,
                         Interval = i.Interval,
                         Ticker = ticker,
                         ClassCode = classCode,
@@ -248,7 +248,7 @@ public class MarketDataStreamMockService : MarketDataStreamService.MarketDataStr
                     sub.Instruments.Select(i => new OrderBookSubscription
                     {
                         Figi = i.Figi,
-                        InstrumentUid = i.InstrumentId,
+                        InstrumentUid = string.IsNullOrEmpty(i.InstrumentId) ? i.Figi : i.InstrumentId,
                         Depth = i.Depth,
                         OrderBookType = i.OrderBookType,
                         SubscriptionStatus = SubscriptionStatus.Success,
@@ -271,7 +271,7 @@ public class MarketDataStreamMockService : MarketDataStreamService.MarketDataStr
                     Orderbook = new OrderBook
                     {
                         Figi = i.Figi,
-                        InstrumentUid = i.InstrumentId,
+                        InstrumentUid = string.IsNullOrEmpty(i.InstrumentId) ? i.Figi : i.InstrumentId,
                         Depth = i.Depth,
                         OrderBookType = OrderBookPushType,
                         Ticker = ticker,
@@ -300,7 +300,7 @@ public class MarketDataStreamMockService : MarketDataStreamService.MarketDataStr
                     sub.Instruments.Select(i => new InfoSubscription
                     {
                         Figi = i.Figi,
-                        InstrumentUid = i.InstrumentId,
+                        InstrumentUid = string.IsNullOrEmpty(i.InstrumentId) ? i.Figi : i.InstrumentId,
                         SubscriptionStatus = SubscriptionStatus.Success,
                         SubscriptionAction = SubscriptionAction.Subscribe,
                         Ticker = ticker,
@@ -330,7 +330,7 @@ public class MarketDataStreamMockService : MarketDataStreamService.MarketDataStr
                             TradingStatus = new TradingStatus
                             {
                                 Figi = i.Figi,
-                                InstrumentUid = i.InstrumentId,
+                                InstrumentUid = string.IsNullOrEmpty(i.InstrumentId) ? i.Figi : i.InstrumentId,
                                 Ticker = ticker,
                                 ClassCode = classCode,
                                 TradingStatus_ = SecurityTradingStatus.NormalTrading,

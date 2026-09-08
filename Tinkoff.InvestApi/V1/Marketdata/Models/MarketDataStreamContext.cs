@@ -39,12 +39,12 @@ public class MarketDataStreamContext
 
     // Локальные (постримовые) обработчики: streamGuid -> (instrumentKey -> список обработчиков).
     // Регистрируются через Subscribe*Async и вызываются только для ответов конкретного стрима и инструмента.
-    private readonly ConcurrentDictionary<Guid, ConcurrentDictionary<string, ConcurrentQueue<Func<CandleWrapper, Task>>>> localCandleHandlers = new();
-    private readonly ConcurrentDictionary<Guid, ConcurrentDictionary<string, ConcurrentQueue<Func<TradeWrapper, Task>>>> localTradeHandlers = new();
-    private readonly ConcurrentDictionary<Guid, ConcurrentDictionary<string, ConcurrentQueue<Func<OrderBookWrapper, Task>>>> localOrderBookHandlers = new();
-    private readonly ConcurrentDictionary<Guid, ConcurrentDictionary<string, ConcurrentQueue<Func<LastPriceWrapper, Task>>>> localLastPriceHandlers = new();
-    private readonly ConcurrentDictionary<Guid, ConcurrentDictionary<string, ConcurrentQueue<Func<OpenInterestWrapper, Task>>>> localOpenInterestHandlers = new();
-    private readonly ConcurrentDictionary<Guid, ConcurrentDictionary<string, ConcurrentQueue<Func<TradingStatusWrapper, Task>>>> localTradingStatusHandlers = new();
+    private readonly ConcurrentDictionary<Guid, ConcurrentDictionary<LocalSubscriptionKey, ConcurrentQueue<Func<CandleWrapper, Task>>>> localCandleHandlers = new();
+    private readonly ConcurrentDictionary<Guid, ConcurrentDictionary<LocalSubscriptionKey, ConcurrentQueue<Func<TradeWrapper, Task>>>> localTradeHandlers = new();
+    private readonly ConcurrentDictionary<Guid, ConcurrentDictionary<LocalSubscriptionKey, ConcurrentQueue<Func<OrderBookWrapper, Task>>>> localOrderBookHandlers = new();
+    private readonly ConcurrentDictionary<Guid, ConcurrentDictionary<LocalSubscriptionKey, ConcurrentQueue<Func<LastPriceWrapper, Task>>>> localLastPriceHandlers = new();
+    private readonly ConcurrentDictionary<Guid, ConcurrentDictionary<LocalSubscriptionKey, ConcurrentQueue<Func<OpenInterestWrapper, Task>>>> localOpenInterestHandlers = new();
+    private readonly ConcurrentDictionary<Guid, ConcurrentDictionary<LocalSubscriptionKey, ConcurrentQueue<Func<TradingStatusWrapper, Task>>>> localTradingStatusHandlers = new();
 
     /// <summary>
     /// Регистрирует глобальный обработчик свечей, вызываемый для ответов любого стрима.
@@ -80,73 +80,73 @@ public class MarketDataStreamContext
     /// Регистрирует локальный обработчик свечей для конкретного стрима и инструмента.
     /// Вызывается только для ответов со стрима <paramref name="streamGuid"/> по инструменту <paramref name="instrumentKey"/>.
     /// </summary>
-    internal void RegisterLocalCandleHandler(Guid streamGuid, string instrumentKey, Func<CandleWrapper, Task> handler)
+    internal void RegisterLocalCandleHandler(Guid streamGuid, LocalSubscriptionKey instrumentKey, Func<CandleWrapper, Task> handler)
         => RegisterLocal(localCandleHandlers, streamGuid, instrumentKey, handler);
 
     /// <summary>
     /// Снимает все локальные обработчики свечей для стрима и инструмента.
     /// </summary>
-    internal void UnregisterLocalCandleHandlers(Guid streamGuid, string instrumentKey)
+    internal void UnregisterLocalCandleHandlers(Guid streamGuid, LocalSubscriptionKey instrumentKey)
         => UnregisterLocal(localCandleHandlers, streamGuid, instrumentKey);
 
     /// <summary>
     /// Регистрирует локальный обработчик сделок для конкретного стрима и инструмента.
     /// </summary>
-    internal void RegisterLocalTradeHandler(Guid streamGuid, string instrumentKey, Func<TradeWrapper, Task> handler)
+    internal void RegisterLocalTradeHandler(Guid streamGuid, LocalSubscriptionKey instrumentKey, Func<TradeWrapper, Task> handler)
         => RegisterLocal(localTradeHandlers, streamGuid, instrumentKey, handler);
 
     /// <summary>
     /// Снимает все локальные обработчики сделок для стрима и инструмента.
     /// </summary>
-    internal void UnregisterLocalTradeHandlers(Guid streamGuid, string instrumentKey)
+    internal void UnregisterLocalTradeHandlers(Guid streamGuid, LocalSubscriptionKey instrumentKey)
         => UnregisterLocal(localTradeHandlers, streamGuid, instrumentKey);
 
     /// <summary>
     /// Регистрирует локальный обработчик стаканов для конкретного стрима и инструмента.
     /// </summary>
-    internal void RegisterLocalOrderBookHandler(Guid streamGuid, string instrumentKey, Func<OrderBookWrapper, Task> handler)
+    internal void RegisterLocalOrderBookHandler(Guid streamGuid, LocalSubscriptionKey instrumentKey, Func<OrderBookWrapper, Task> handler)
         => RegisterLocal(localOrderBookHandlers, streamGuid, instrumentKey, handler);
 
     /// <summary>
     /// Снимает все локальные обработчики стаканов для стрима и инструмента.
     /// </summary>
-    internal void UnregisterLocalOrderBookHandlers(Guid streamGuid, string instrumentKey)
+    internal void UnregisterLocalOrderBookHandlers(Guid streamGuid, LocalSubscriptionKey instrumentKey)
         => UnregisterLocal(localOrderBookHandlers, streamGuid, instrumentKey);
 
     /// <summary>
     /// Регистрирует локальный обработчик цен последней сделки для конкретного стрима и инструмента.
     /// </summary>
-    internal void RegisterLocalLastPriceHandler(Guid streamGuid, string instrumentKey, Func<LastPriceWrapper, Task> handler)
+    internal void RegisterLocalLastPriceHandler(Guid streamGuid, LocalSubscriptionKey instrumentKey, Func<LastPriceWrapper, Task> handler)
         => RegisterLocal(localLastPriceHandlers, streamGuid, instrumentKey, handler);
 
     /// <summary>
     /// Снимает все локальные обработчики цен последней сделки для стрима и инструмента.
     /// </summary>
-    internal void UnregisterLocalLastPriceHandlers(Guid streamGuid, string instrumentKey)
+    internal void UnregisterLocalLastPriceHandlers(Guid streamGuid, LocalSubscriptionKey instrumentKey)
         => UnregisterLocal(localLastPriceHandlers, streamGuid, instrumentKey);
 
     /// <summary>
     /// Регистрирует локальный обработчик открытых позиций для конкретного стрима и инструмента.
     /// </summary>
-    internal void RegisterLocalOpenInterestHandler(Guid streamGuid, string instrumentKey, Func<OpenInterestWrapper, Task> handler)
+    internal void RegisterLocalOpenInterestHandler(Guid streamGuid, LocalSubscriptionKey instrumentKey, Func<OpenInterestWrapper, Task> handler)
         => RegisterLocal(localOpenInterestHandlers, streamGuid, instrumentKey, handler);
 
     /// <summary>
     /// Снимает все локальные обработчики открытых позиций для стрима и инструмента.
     /// </summary>
-    internal void UnregisterLocalOpenInterestHandlers(Guid streamGuid, string instrumentKey)
+    internal void UnregisterLocalOpenInterestHandlers(Guid streamGuid, LocalSubscriptionKey instrumentKey)
         => UnregisterLocal(localOpenInterestHandlers, streamGuid, instrumentKey);
 
     /// <summary>
     /// Регистрирует локальный обработчик торговых статусов для конкретного стрима и инструмента.
     /// </summary>
-    internal void RegisterLocalTradingStatusHandler(Guid streamGuid, string instrumentKey, Func<TradingStatusWrapper, Task> handler)
+    internal void RegisterLocalTradingStatusHandler(Guid streamGuid, LocalSubscriptionKey instrumentKey, Func<TradingStatusWrapper, Task> handler)
         => RegisterLocal(localTradingStatusHandlers, streamGuid, instrumentKey, handler);
 
     /// <summary>
     /// Снимает все локальные обработчики торговых статусов для стрима и инструмента.
     /// </summary>
-    internal void UnregisterLocalTradingStatusHandlers(Guid streamGuid, string instrumentKey)
+    internal void UnregisterLocalTradingStatusHandlers(Guid streamGuid, LocalSubscriptionKey instrumentKey)
         => UnregisterLocal(localTradingStatusHandlers, streamGuid, instrumentKey);
 
     /// <summary>
@@ -163,20 +163,20 @@ public class MarketDataStreamContext
     }
 
     private static void RegisterLocal<TWrapper>(
-        ConcurrentDictionary<Guid, ConcurrentDictionary<string, ConcurrentQueue<Func<TWrapper, Task>>>> localHandlers,
+        ConcurrentDictionary<Guid, ConcurrentDictionary<LocalSubscriptionKey, ConcurrentQueue<Func<TWrapper, Task>>>> localHandlers,
         Guid streamGuid,
-        string instrumentKey,
+        LocalSubscriptionKey instrumentKey,
         Func<TWrapper, Task> handler)
     {
-        var byKey = localHandlers.GetOrAdd(streamGuid, _ => new ConcurrentDictionary<string, ConcurrentQueue<Func<TWrapper, Task>>>());
+        var byKey = localHandlers.GetOrAdd(streamGuid, _ => new ConcurrentDictionary<LocalSubscriptionKey, ConcurrentQueue<Func<TWrapper, Task>>>());
         var queue = byKey.GetOrAdd(instrumentKey, _ => new ConcurrentQueue<Func<TWrapper, Task>>());
         queue.Enqueue(handler);
     }
 
     private static void UnregisterLocal<TWrapper>(
-        ConcurrentDictionary<Guid, ConcurrentDictionary<string, ConcurrentQueue<Func<TWrapper, Task>>>> localHandlers,
+        ConcurrentDictionary<Guid, ConcurrentDictionary<LocalSubscriptionKey, ConcurrentQueue<Func<TWrapper, Task>>>> localHandlers,
         Guid streamGuid,
-        string instrumentKey)
+        LocalSubscriptionKey instrumentKey)
     {
         if (localHandlers.TryGetValue(streamGuid, out var byKey))
         {
@@ -185,10 +185,10 @@ public class MarketDataStreamContext
     }
 
     private static async Task DispatchLocalAsync<TWrapper>(
-        ConcurrentDictionary<Guid, ConcurrentDictionary<string, ConcurrentQueue<Func<TWrapper, Task>>>> localHandlers,
+        ConcurrentDictionary<Guid, ConcurrentDictionary<LocalSubscriptionKey, ConcurrentQueue<Func<TWrapper, Task>>>> localHandlers,
         Guid? streamGuid,
         TWrapper wrapper,
-        string instrumentKey)
+        LocalSubscriptionKey instrumentKey)
     {
         if (streamGuid.HasValue
             && localHandlers.TryGetValue(streamGuid.Value, out var byKey)
@@ -244,7 +244,7 @@ public class MarketDataStreamContext
         {
             await handler(wrapper);
         }
-        await DispatchLocalAsync(localCandleHandlers, streamGuid, wrapper, $"{wrapper.Figi()}:{wrapper.InstrumentUid()}:{wrapper.Interval()}");
+        await DispatchLocalAsync(localCandleHandlers, streamGuid, wrapper, new LocalSubscriptionKey(wrapper.Figi(), wrapper.InstrumentUid(), wrapper.Interval().ToString()));
     }
 
     internal async Task PushTradeAsync(TradeWrapper wrapper, Guid? streamGuid = null)
@@ -254,7 +254,7 @@ public class MarketDataStreamContext
         {
             await handler(wrapper);
         }
-        await DispatchLocalAsync(localTradeHandlers, streamGuid, wrapper, $"{wrapper.Figi()}:{wrapper.InstrumentUid()}");
+        await DispatchLocalAsync(localTradeHandlers, streamGuid, wrapper, new LocalSubscriptionKey(wrapper.Figi(), wrapper.InstrumentUid(), string.Empty));
     }
 
     internal async Task PushOrderBookAsync(OrderBookWrapper wrapper, Guid? streamGuid = null)
@@ -264,11 +264,10 @@ public class MarketDataStreamContext
         {
             await handler(wrapper);
         }
-        var orderBookBaseKey = $"{wrapper.Figi()}:{wrapper.InstrumentUid()}";
         // Диспатчим по конкретному типу пуша и по подписке All: подписка с конкретным типом
         // получает только пуши того же типа, а подписка All — пуши любого типа.
-        await DispatchLocalAsync(localOrderBookHandlers, streamGuid, wrapper, $"{orderBookBaseKey}:{wrapper.OrderBookType()}");
-        await DispatchLocalAsync(localOrderBookHandlers, streamGuid, wrapper, $"{orderBookBaseKey}:{OrderBookType.All}");
+        await DispatchLocalAsync(localOrderBookHandlers, streamGuid, wrapper, new LocalSubscriptionKey(wrapper.Figi(), wrapper.InstrumentUid(), wrapper.OrderBookType().ToString()));
+        await DispatchLocalAsync(localOrderBookHandlers, streamGuid, wrapper, new LocalSubscriptionKey(wrapper.Figi(), wrapper.InstrumentUid(), OrderBookType.All.ToString()));
     }
 
     internal async Task PushLastPriceAsync(LastPriceWrapper wrapper, Guid? streamGuid = null)
@@ -278,7 +277,7 @@ public class MarketDataStreamContext
         {
             await handler(wrapper);
         }
-        await DispatchLocalAsync(localLastPriceHandlers, streamGuid, wrapper, $"{wrapper.Figi()}:{wrapper.InstrumentUid()}");
+        await DispatchLocalAsync(localLastPriceHandlers, streamGuid, wrapper, new LocalSubscriptionKey(wrapper.Figi(), wrapper.InstrumentUid(), string.Empty));
     }
 
     internal async Task PushOpenInterestAsync(OpenInterestWrapper wrapper, Guid? streamGuid = null)
@@ -288,7 +287,7 @@ public class MarketDataStreamContext
         {
             await handler(wrapper);
         }
-        await DispatchLocalAsync(localOpenInterestHandlers, streamGuid, wrapper, $"{wrapper.InstrumentUid()}");
+        await DispatchLocalAsync(localOpenInterestHandlers, streamGuid, wrapper, new LocalSubscriptionKey(string.Empty, wrapper.InstrumentUid(), string.Empty));
     }
 
     internal async Task PushTradingStatusAsync(TradingStatusWrapper wrapper, Guid? streamGuid = null)
@@ -298,6 +297,42 @@ public class MarketDataStreamContext
         {
             await handler(wrapper);
         }
-        await DispatchLocalAsync(localTradingStatusHandlers, streamGuid, wrapper, $"{wrapper.Figi()}:{wrapper.InstrumentUid()}");
+        await DispatchLocalAsync(localTradingStatusHandlers, streamGuid, wrapper, new LocalSubscriptionKey(wrapper.Figi(), wrapper.InstrumentUid(), string.Empty));
     }
+}
+
+/// <summary>
+/// Ключ локального обработчика: id инструмента (FIGI/UID) и дискриминатор подписки
+/// (интервал для свечей, тип для стакана; пуст для остальных типов).
+/// Equals сопоставляет id по указанным полям: пустое поле одной стороны не участвует в сравнении —
+/// ответ с полным инструментом находит обработчик, зарегистрированный по неполному id.
+/// GetHashCode зависит только от дискриминатора, чтобы равные по Equals ключи попадали в одну корзину словаря.
+/// </summary>
+internal sealed class LocalSubscriptionKey : IEquatable<LocalSubscriptionKey>
+{
+    public LocalSubscriptionKey(string figi, string uid, string extra)
+    {
+        Figi = figi;
+        Uid = uid;
+        Extra = extra;
+    }
+
+    public string Figi { get; }
+    public string Uid { get; }
+    public string Extra { get; }
+
+    public bool Equals(LocalSubscriptionKey? other)
+    {
+        if (other is null) return false;
+        if (Extra != other.Extra) return false;
+        if (!string.IsNullOrEmpty(Figi) && Figi != other.Figi) return false;
+        if (!string.IsNullOrEmpty(Uid) && Uid != other.Uid) return false;
+        return true;
+    }
+
+    public override bool Equals(object? obj) => obj is LocalSubscriptionKey other && Equals(other);
+
+    public override int GetHashCode() => Extra.GetHashCode();
+
+    public override string ToString() => $"{Figi}:{Uid}:{Extra}";
 }
