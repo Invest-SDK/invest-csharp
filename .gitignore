@@ -355,5 +355,8 @@ MigrationBackup/
 # Rider
 .idea/
 
+# Nessy
+.nessy/
+
 # Приватные настройки
 Examples/**/launchSettings.json

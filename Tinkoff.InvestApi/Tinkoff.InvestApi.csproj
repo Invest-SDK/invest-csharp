@@ -45,4 +45,8 @@
         <InternalsVisibleTo Include="DynamicProxyGenAssembly2" />
         <InternalsVisibleTo Include="Tinkoff.InvestApi.Tests" />
     </ItemGroup>
+
+    <ItemGroup>
+        <EmbeddedResource Include="Resources\Certificates\Russian_Trusted_Root_CA.cer" />
+    </ItemGroup>
 </Project>

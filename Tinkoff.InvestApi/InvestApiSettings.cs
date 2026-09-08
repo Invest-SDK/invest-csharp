@@ -25,5 +25,5 @@ public class InvestApiSettings
     /**
     * Включить проверку сертификатов
     */
-    public bool EnableSsl { get; set; } = false;
+    public bool EnableSsl { get; set; } = true;
 }
