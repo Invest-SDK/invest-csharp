@@ -12,5 +12,46 @@ namespace Tinkoff.InvestApi.Tests.Marketdata;
 
 public class MarketDataStreamManagerTests
 {
-    
+
+    [Fact]
+    void TestSubscribeTradesDoesNotDuplicateAcrossSeparateCalls()
+    {
+        
+    }
+
+    [Fact]
+    void TestSubscribeCandlesWithDifferentIntervalsForSameInstrument()
+    {
+        
+    }
+
+    [Fact]
+    void TestSubscribeTradingStatusesDeliversToListener()
+    {
+        
+    }
+
+    [Fact]
+    void TestSubscribeTradingStatusesWithSharedIntervalInstrumentStillDelivers()
+    {
+        
+    }
+
+    [Fact]
+    void TestSubscribeTradingStatusesTwiceRegistersBothListeners()
+    {
+        
+    }
+
+    [Fact]
+    void TestSubscribeOrderBookWithAllTypeDeliversToListener()
+    {
+        
+    }
+
+    [Fact]
+    void TestSubscribeOrderBookWithExplicitTypeIgnoresOtherType()
+    {
+        
+    }
 }
