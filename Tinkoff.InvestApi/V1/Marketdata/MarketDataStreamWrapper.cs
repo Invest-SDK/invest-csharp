@@ -207,10 +207,14 @@ public class MarketDataStreamWrapper
         var instruments = GetInstrumentsFromRequest(request);
         var keys = instruments.Select(i => GetSubscriptionKey(responseType, i)).ToList();
 
-        // Создаём TaskCompletionSource для каждого инструмента
+        // Создаём TaskCompletionSource для каждого инструмента и захватываем задачи локально:
+        // обработчик ответа удаляет ключи из _pendingSubscriptions, поэтому перечитывать их нельзя.
+        var pending = new List<(string Key, Task<MarketDataSubscriptionResult> Task)>();
         foreach (var key in keys)
         {
-            _pendingSubscriptions.TryAdd(key, new TaskCompletionSource<MarketDataSubscriptionResult>(TaskCreationOptions.RunContinuationsAsynchronously));
+            var tcs = new TaskCompletionSource<MarketDataSubscriptionResult>(TaskCreationOptions.RunContinuationsAsynchronously);
+            _pendingSubscriptions.TryAdd(key, tcs);
+            pending.Add((key, tcs.Task));
         }
 
         await _streamWrapper.CallAsync(request.ToMarketDataRequest(), cancellationToken);
@@ -219,14 +223,10 @@ public class MarketDataStreamWrapper
         await _connectionHandlerLock.WaitAsync(cancellationToken);
         _connectionHandlerLock.Release();
 
-        // Дожидаемся ответа для всех инструментов
-        var tasks = keys.Select(k => _pendingSubscriptions[k].Task).ToList();
-        await Task.WhenAll(tasks);
-
-        // Проверяем, что все подписки успешны
-        foreach (var key in keys)
+        // Дожидаемся ответа для всех инструментов и проверяем, что подписки успешны
+        foreach (var (key, task) in pending)
         {
-            var result = await _pendingSubscriptions[key].Task;
+            var result = await task;
             if (result.SubsciptionStatusDictionary.Values.Any(s => s != MarketDataSubscriptionStatus.OK))
             {
                 throw new InvalidOperationException($"Подписка не удалась для {key}");
@@ -243,10 +243,14 @@ public class MarketDataStreamWrapper
         var instruments = GetInstrumentsFromRequest(request);
         var keys = instruments.Select(i => GetSubscriptionKey(responseType, i)).ToList();
 
-        // Создаём TaskCompletionSource для каждого инструмента
+        // Создаём TaskCompletionSource для каждого инструмента и захватываем задачи локально:
+        // обработчик ответа удаляет ключи из _pendingSubscriptions, поэтому перечитывать их нельзя.
+        var pending = new List<(string Key, Task<MarketDataSubscriptionResult> Task)>();
         foreach (var key in keys)
         {
-            _pendingSubscriptions.TryAdd(key, new TaskCompletionSource<MarketDataSubscriptionResult>(TaskCreationOptions.RunContinuationsAsynchronously));
+            var tcs = new TaskCompletionSource<MarketDataSubscriptionResult>(TaskCreationOptions.RunContinuationsAsynchronously);
+            _pendingSubscriptions.TryAdd(key, tcs);
+            pending.Add((key, tcs.Task));
         }
 
         await _streamWrapper.CallAsync(request.ToMarketDataRequest(), cancellationToken);
@@ -255,14 +259,10 @@ public class MarketDataStreamWrapper
         await _connectionHandlerLock.WaitAsync(cancellationToken);
         _connectionHandlerLock.Release();
 
-        // Дожидаемся ответа для всех инструментов
-        var tasks = keys.Select(k => _pendingSubscriptions[k].Task).ToList();
-        await Task.WhenAll(tasks);
-
-        // Проверяем, что все отписки успешны
-        foreach (var key in keys)
+        // Дожидаемся ответа для всех инструментов и проверяем, что отписки успешны
+        foreach (var (key, task) in pending)
         {
-            var result = await _pendingSubscriptions[key].Task;
+            var result = await task;
             if (result.SubsciptionStatusDictionary.Values.Any(s => s != MarketDataSubscriptionStatus.OK))
             {
                 throw new InvalidOperationException($"Отписка не удалась для {key}");
@@ -363,6 +363,7 @@ public class MarketDataStreamWrapper
             TradeSubscriptionRequest => MarketDataResponseType.TRADE,
             LastPriceSubscriptionRequest => MarketDataResponseType.LAST_PRICE,
             OpenInterestSubscriptionRequest => MarketDataResponseType.OPEN_INTEREST,
+            TradingStatusesSubscriptionRequest => MarketDataResponseType.TRADING_STATUS,
             _ => throw new ArgumentOutOfRangeException(nameof(request), request.GetType(), "Неизвестный тип запроса подписки")
         };
     }
@@ -376,6 +377,7 @@ public class MarketDataStreamWrapper
             TradeSubscriptionRequest r => [.. r.Instruments],
             LastPriceSubscriptionRequest r => [.. r.Instruments],
             OpenInterestSubscriptionRequest r => [.. r.Instruments],
+            TradingStatusesSubscriptionRequest r => [.. r.Instruments],
             _ => throw new ArgumentOutOfRangeException(nameof(request), request.GetType(), "Неизвестный тип запроса подписки")
         };
     }
@@ -392,6 +394,7 @@ public class MarketDataStreamWrapper
             MarketDataResponseType.TRADE => new TradeSubscriptionRequest(action, [instrument]),
             MarketDataResponseType.LAST_PRICE => new LastPriceSubscriptionRequest(action, [instrument]),
             MarketDataResponseType.OPEN_INTEREST => new OpenInterestSubscriptionRequest(action, [instrument]),
+            MarketDataResponseType.TRADING_STATUS => new TradingStatusesSubscriptionRequest(action, [instrument]),
             _ => throw new ArgumentOutOfRangeException(nameof(responseType), responseType, null)
         };
     }

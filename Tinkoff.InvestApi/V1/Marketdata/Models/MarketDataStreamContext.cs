@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
 using System.Threading.Channels;
 using Tinkoff.InvestApi.Stream.Marketdata.Models.Wrapper;
+using Tinkoff.InvestApi.V1;
 using Tinkoff.InvestApi.V1.Marketdata.Models.Wrapper;
 
 namespace Tinkoff.InvestApi.Stream.Marketdata.Models;
@@ -43,6 +44,7 @@ public class MarketDataStreamContext
     private readonly ConcurrentDictionary<Guid, ConcurrentDictionary<string, ConcurrentQueue<Func<OrderBookWrapper, Task>>>> localOrderBookHandlers = new();
     private readonly ConcurrentDictionary<Guid, ConcurrentDictionary<string, ConcurrentQueue<Func<LastPriceWrapper, Task>>>> localLastPriceHandlers = new();
     private readonly ConcurrentDictionary<Guid, ConcurrentDictionary<string, ConcurrentQueue<Func<OpenInterestWrapper, Task>>>> localOpenInterestHandlers = new();
+    private readonly ConcurrentDictionary<Guid, ConcurrentDictionary<string, ConcurrentQueue<Func<TradingStatusWrapper, Task>>>> localTradingStatusHandlers = new();
 
     /// <summary>
     /// Регистрирует глобальный обработчик свечей, вызываемый для ответов любого стрима.
@@ -136,6 +138,18 @@ public class MarketDataStreamContext
         => UnregisterLocal(localOpenInterestHandlers, streamGuid, instrumentKey);
 
     /// <summary>
+    /// Регистрирует локальный обработчик торговых статусов для конкретного стрима и инструмента.
+    /// </summary>
+    internal void RegisterLocalTradingStatusHandler(Guid streamGuid, string instrumentKey, Func<TradingStatusWrapper, Task> handler)
+        => RegisterLocal(localTradingStatusHandlers, streamGuid, instrumentKey, handler);
+
+    /// <summary>
+    /// Снимает все локальные обработчики торговых статусов для стрима и инструмента.
+    /// </summary>
+    internal void UnregisterLocalTradingStatusHandlers(Guid streamGuid, string instrumentKey)
+        => UnregisterLocal(localTradingStatusHandlers, streamGuid, instrumentKey);
+
+    /// <summary>
     /// Удаляет все локальные обработчики всех стримов.
     /// </summary>
     internal void ClearLocalHandlers()
@@ -145,6 +159,7 @@ public class MarketDataStreamContext
         localOrderBookHandlers.Clear();
         localLastPriceHandlers.Clear();
         localOpenInterestHandlers.Clear();
+        localTradingStatusHandlers.Clear();
     }
 
     private static void RegisterLocal<TWrapper>(
@@ -229,7 +244,7 @@ public class MarketDataStreamContext
         {
             await handler(wrapper);
         }
-        await DispatchLocalAsync(localCandleHandlers, streamGuid, wrapper, $"{wrapper.Figi()}:{wrapper.InstrumentUid()}");
+        await DispatchLocalAsync(localCandleHandlers, streamGuid, wrapper, $"{wrapper.Figi()}:{wrapper.InstrumentUid()}:{wrapper.Interval()}");
     }
 
     internal async Task PushTradeAsync(TradeWrapper wrapper, Guid? streamGuid = null)
@@ -249,7 +264,11 @@ public class MarketDataStreamContext
         {
             await handler(wrapper);
         }
-        await DispatchLocalAsync(localOrderBookHandlers, streamGuid, wrapper, $"{wrapper.Figi()}:{wrapper.InstrumentUid()}");
+        var orderBookBaseKey = $"{wrapper.Figi()}:{wrapper.InstrumentUid()}";
+        // Диспатчим по конкретному типу пуша и по подписке All: подписка с конкретным типом
+        // получает только пуши того же типа, а подписка All — пуши любого типа.
+        await DispatchLocalAsync(localOrderBookHandlers, streamGuid, wrapper, $"{orderBookBaseKey}:{wrapper.OrderBookType()}");
+        await DispatchLocalAsync(localOrderBookHandlers, streamGuid, wrapper, $"{orderBookBaseKey}:{OrderBookType.All}");
     }
 
     internal async Task PushLastPriceAsync(LastPriceWrapper wrapper, Guid? streamGuid = null)
@@ -272,12 +291,13 @@ public class MarketDataStreamContext
         await DispatchLocalAsync(localOpenInterestHandlers, streamGuid, wrapper, $"{wrapper.InstrumentUid()}");
     }
 
-    internal async Task PushTradingStatusAsync(TradingStatusWrapper wrapper)
+    internal async Task PushTradingStatusAsync(TradingStatusWrapper wrapper, Guid? streamGuid = null)
     {
         await tradingStatusesChannel.Writer.WriteAsync(wrapper);
         foreach (var handler in globalTradingStatusEventQueue)
         {
             await handler(wrapper);
         }
+        await DispatchLocalAsync(localTradingStatusHandlers, streamGuid, wrapper, $"{wrapper.Figi()}:{wrapper.InstrumentUid()}");
     }
 }

@@ -73,7 +73,7 @@ public static class MarketDataUtils
         {
             return new MarketDataSubscriptionResult(
                 GetActionFromResponse(response),
-                MarketDataResponseType.OPEN_INTEREST,
+                MarketDataResponseType.TRADING_STATUS,
                 response.SubscribeInfoResponse.InfoSubscriptions.ToDictionary(
                     x => new MarketDataInstrument(
                         figi: x.Figi,

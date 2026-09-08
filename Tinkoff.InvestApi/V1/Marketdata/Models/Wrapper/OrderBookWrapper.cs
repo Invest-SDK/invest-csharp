@@ -64,6 +64,14 @@ public record OrderBookWrapper(OrderBook Response) : ResponseWrapper<OrderBook>(
         return Response.InstrumentUid;
     }
 
+    /// <summary>
+    /// Метод для получения типа стакана
+    /// </summary>
+    public OrderBookType OrderBookType()
+    {
+        return Response.OrderBookType;
+    }
+
     public record OrderWrapper(Order Response) : ResponseWrapper<Order>(Response)
     {
         /// <summary>

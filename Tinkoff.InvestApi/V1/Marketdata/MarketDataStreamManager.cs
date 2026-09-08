@@ -188,7 +188,7 @@ public class MarketDataStreamManager
     public Task SubscribeTradingStatusesAsync(
         IEnumerable<MarketDataInstrument> instruments,
         CancellationToken cancellationToken = default,
-        Func<TradeWrapper, Task>? onTradingStatuses = null)
+        Func<TradingStatusWrapper, Task>? onTradingStatuses = null)
         => RouteSubscribeAsync(
             instruments.ToList(),
             i => SubscriptionKey(MarketDataResponseType.TRADING_STATUS, i.Figi, i.Uid),
@@ -405,7 +405,7 @@ public class MarketDataStreamManager
         }
         else if (response.TradingStatus != null && response.TradingStatus.IsInitialized())
         {
-            await _context.PushTradingStatusAsync(new TradingStatusWrapper(response.TradingStatus));
+            await _context.PushTradingStatusAsync(new TradingStatusWrapper(response.TradingStatus), streamGuid);
         }
     }
 
@@ -485,6 +485,9 @@ public class MarketDataStreamManager
                 case MarketDataResponseType.OPEN_INTEREST:
                     _context.RegisterLocalOpenInterestHandler(stream.Guid, key, (Func<OpenInterestWrapper, Task>)handler);
                     break;
+                case MarketDataResponseType.TRADING_STATUS:
+                    _context.RegisterLocalTradingStatusHandler(stream.Guid, key, (Func<TradingStatusWrapper, Task>)handler);
+                    break;
             }
         }
     }
@@ -517,6 +520,9 @@ public class MarketDataStreamManager
                 case MarketDataResponseType.OPEN_INTEREST:
                     _context.UnregisterLocalOpenInterestHandlers(stream.Guid, key);
                     break;
+                case MarketDataResponseType.TRADING_STATUS:
+                    _context.UnregisterLocalTradingStatusHandlers(stream.Guid, key);
+                    break;
             }
         }
     }
@@ -527,9 +533,16 @@ public class MarketDataStreamManager
     /// </summary>
     private static string LocalInstrumentKey(MarketDataResponseType responseType, MarketDataInstrument item)
     {
-        return responseType == MarketDataResponseType.OPEN_INTEREST
-            ? $"{item.Uid}"
-            : $"{item.Figi}:{item.Uid}";
+        return responseType switch
+        {
+            // Свечи одного инструмента с разными интервалами обрабатываются раздельно.
+            MarketDataResponseType.CANDLE => $"{item.Figi}:{item.Uid}:{item.Interval}",
+            // Стакан: подписка с конкретным типом получает только пуши того же типа,
+            // а ALL (или незаданный тип) — пуши любого типа.
+            MarketDataResponseType.ORDER_BOOK => $"{item.Figi}:{item.Uid}:{item.OrderBook ?? OrderBookType.All}",
+            MarketDataResponseType.OPEN_INTEREST => $"{item.Uid}",
+            _ => $"{item.Figi}:{item.Uid}"
+        };
     }
 
     private static Candle MapCandle(HistoricCandle candle, MarketDataInstrument instrument)
