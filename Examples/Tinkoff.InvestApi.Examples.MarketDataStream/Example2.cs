@@ -14,7 +14,7 @@ public class Example2(ILogger<Example2> logger, InvestApiClient investClient)
 
     public async Task Run()
     {
-        var configurer = new MarketDataManagerConfigurer(investClient.MarketDataStream, (client, options) => client.MarketDataStream(options))
+        var configurer = new MarketDataManagerConfigurer(investClient.MarketDataStream)
             .WithPingDelayMs(1000)
             .WithInactivityTimeoutMs(10000)
             .WithMaxSubscriptionsPerStream(20);

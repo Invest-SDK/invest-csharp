@@ -7,11 +7,8 @@ namespace Tinkoff.InvestApi.Stream;
 /// Конфигуратор для "MarketDataStreamManager"
 /// </summary>
 /// <param name="client">Клиент для создания соединения</param>
-/// <param name="callMethod"></param>
-public class MarketDataManagerConfigurer(
-    MarketDataStreamService.MarketDataStreamServiceClient client,
-    Func<MarketDataStreamService.MarketDataStreamServiceClient, CallOptions, AsyncDuplexStreamingCall<MarketDataRequest, MarketDataResponse>> callMethod
-    ) : ResilenceDuplexStreamConfigurer<MarketDataStreamService.MarketDataStreamServiceClient, MarketDataRequest, MarketDataResponse>(client, callMethod)
+public class MarketDataManagerConfigurer(MarketDataStreamService.MarketDataStreamServiceClient client) 
+: ResilenceDuplexStreamConfigurer<MarketDataStreamService.MarketDataStreamServiceClient, MarketDataRequest, MarketDataResponse>(client, (c, options) => c.MarketDataStream(options))
 {
     public int MaxSubscriptionsPerStream { get; set; } = 300;
     public int MaxStreams { get; set; } = 16;
@@ -27,13 +24,6 @@ public class MarketDataManagerConfigurer(
         MaxStreams = maxStreams;
         return this;
     }
-
-    public new MarketDataManagerConfigurer WithCallMethod(Func<MarketDataStreamService.MarketDataStreamServiceClient, CallOptions, AsyncDuplexStreamingCall<MarketDataRequest, MarketDataResponse>> callMethod)
-    {
-        CallMethod = callMethod;
-        return this;
-    }
-
 
     public new MarketDataManagerConfigurer WithCallOptions(CallOptions callOptions)
     {

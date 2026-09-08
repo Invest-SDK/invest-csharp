@@ -318,8 +318,7 @@ public class MarketDataStreamManagerTests
         var marketDataClient = new MarketDataService.MarketDataServiceClient(channel);
 
         var configurer = new MarketDataManagerConfigurer(
-            streamClient,
-            (c, co) => c.MarketDataStream(co))
+            streamClient)
             .WithMaxSubscriptionsPerStream(maxSubscriptionsPerStream)
             .WithMaxStreams(maxStreams)
             .WithConnectTimeoutMs(5000)
