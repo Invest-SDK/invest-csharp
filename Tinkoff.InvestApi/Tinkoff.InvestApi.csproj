@@ -33,7 +33,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <Protobuf Include="..\investAPI\src\docs\contracts\*.proto" Link="protos\*.proto" GrpcServices="Client" />
+        <Protobuf Include="..\investAPI\src\docs\contracts\*.proto" Link="protos\*.proto" GrpcServices="Both" />
     </ItemGroup>
 
     <PropertyGroup>

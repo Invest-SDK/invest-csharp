@@ -107,6 +107,24 @@ public class MarketDataStreamWrapper
     }
 
     /// <summary>
+    /// Подписывается на статус сделки
+    /// </summary>
+    public async Task SubscribeTradingStatusesAsync(IEnumerable<MarketDataInstrument> instruments, CancellationToken cancellationToken = default)
+    {
+        var request = new TradingStatusesSubscriptionRequest(SubscriptionAction.Subscribe, instruments);
+        await AddSubscriptionAsync(request, cancellationToken);
+    }
+
+    /// <summary>
+    /// Отписывается от статуса сделок
+    /// </summary>
+    public async Task UnsubscribeTradingStatusesAsync(IEnumerable<MarketDataInstrument> instruments, CancellationToken cancellationToken = default)
+    {
+        var request = new TradingStatusesSubscriptionRequest(SubscriptionAction.Unsubscribe, instruments);
+        await RemoveSubscriptionAsync(request, cancellationToken);
+    }
+
+    /// <summary>
     /// Подписывается на цену последней сделки
     /// </summary>
     public async Task SubscribeLastPriceAsync(IEnumerable<MarketDataInstrument> instruments, CancellationToken cancellationToken = default)

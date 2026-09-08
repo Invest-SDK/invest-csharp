@@ -320,7 +320,7 @@ public class ResilenceDuplexStreamWrapperTests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task CallAsync_ShouldThrowTimeoutException_WhenConnectAsyncWasNeverCalled()
+    public async Task CallAsync_ShouldNotThrowTimeoutException_WhenConnectAsyncWasNeverCalled()
     {
         var channel = _fixture.CreateChannel();
         var client = new TestStreamService.TestStreamServiceClient(channel);
@@ -333,7 +333,6 @@ public class ResilenceDuplexStreamWrapperTests : IAsyncLifetime
 
         Func<Task> act = () => wrapper.CallAsync(request);
 
-        await act.Should().ThrowAsync<TimeoutException>(
-            "CallAsync не должен подключаться самостоятельно и должен упасть по таймауту, если ConnectAsync не был вызван");
+        await act.Should().NotThrowAsync<TimeoutException>("После запроса должно быть автомаатически создано подключение");
     }
 }

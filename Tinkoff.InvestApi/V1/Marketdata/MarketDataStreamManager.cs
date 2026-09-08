@@ -182,6 +182,33 @@ public class MarketDataStreamManager
             (s, batch) => UnregisterLocalHandler(MarketDataResponseType.TRADE, s, batch));
 
     /// <summary>
+    /// Подписывается на статус сделок, распределяя инструменты между стримами пула.
+    /// Переданный <paramref name="onTradingStatuses"/> регистрируется как локальный обработчик для стрима и подписки.
+    /// </summary>
+    public Task SubscribeTradingStatusesAsync(
+        IEnumerable<MarketDataInstrument> instruments,
+        CancellationToken cancellationToken = default,
+        Func<TradeWrapper, Task>? onTradingStatuses = null)
+        => RouteSubscribeAsync(
+            instruments.ToList(),
+            i => SubscriptionKey(MarketDataResponseType.TRADING_STATUS, i.Figi, i.Uid),
+            (s, batch, ct) => s.SubscribeTradingStatusesAsync(batch, ct),
+            cancellationToken,
+            onTradingStatuses == null ? null : (s, batch) => RegisterLocalHandler(MarketDataResponseType.TRADING_STATUS, s, batch, onTradingStatuses));
+
+    /// <summary>
+    /// Отписывается от статуса сделок, направляя запрос в стрим, удерживающий подписку,
+    /// и снимает связанные с ней локальные обработчики.
+    /// </summary>
+    public Task UnsubscribeTradingStatusesAsync(IEnumerable<MarketDataInstrument> instruments, CancellationToken cancellationToken = default)
+        => RouteUnsubscribeAsync(
+            instruments.ToList(),
+            i => SubscriptionKey(MarketDataResponseType.TRADING_STATUS, i.Figi, i.Uid),
+            (s, batch, ct) => s.UnsubscribeTradingStatusesAsync(batch, ct),
+            cancellationToken,
+            (s, batch) => UnregisterLocalHandler(MarketDataResponseType.TRADING_STATUS, s, batch));
+
+    /// <summary>
     /// Подписывается на цены последней сделки, распределяя инструменты между стримами пула.
     /// Переданный <paramref name="onLastPrice"/> регистрируется как локальный обработчик для стрима и подписки.
     /// </summary>
