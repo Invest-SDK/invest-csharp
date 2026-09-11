@@ -8,7 +8,7 @@ public static class MarketDataModelExtensions
     /// <summary>
     /// Преобразует grpc-модель свечи в независимую модель <see cref="CandleModel"/>.
     /// </summary>
-    public static CandleModel ToWrapper(this Candle candle, bool isHistorical) => new()
+    public static CandleModel ToModel(this Candle candle, bool isHistorical) => new()
     {
         Figi = candle.Figi,
         Ticker = candle.Ticker,
@@ -31,7 +31,7 @@ public static class MarketDataModelExtensions
     /// <summary>
     /// Преобразует grpc-модель сделки в независимую модель <see cref="TradeModel"/>.
     /// </summary>
-    public static TradeModel ToWrapper(this Trade trade) => new()
+    public static TradeModel ToModel(this Trade trade) => new()
     {
         Figi = trade.Figi,
         Ticker = trade.Ticker,
@@ -57,14 +57,14 @@ public static class MarketDataModelExtensions
         Time = TimestampExtensions.ToDateTimeOrNull(orderBook.Time),
         InstrumentUid = orderBook.InstrumentUid,
         OrderBookType = orderBook.OrderBookType,
-        Bids = orderBook.Bids.Select(b => b.ToWrapper()).ToList(),
-        Asks = orderBook.Asks.Select(a => a.ToWrapper()).ToList(),
+        Bids = orderBook.Bids.Select(b => b.ToModel()).ToList(),
+        Asks = orderBook.Asks.Select(a => a.ToModel()).ToList(),
     };
 
     /// <summary>
     /// Преобразует grpc-модель записи стакана в независимую модель <see cref="OrderModel"/>.
     /// </summary>
-    public static OrderModel ToWrapper(this Order order) => new()
+    public static OrderModel ToModel(this Order order) => new()
     {
         Price = order.Price,
         Quantity = order.Quantity,
@@ -73,7 +73,7 @@ public static class MarketDataModelExtensions
     /// <summary>
     /// Преобразует grpc-модель торгового статуса в независимую модель <see cref="TradingStatusModel"/>.
     /// </summary>
-    public static TradingStatusModel ToWrapper(this TradingStatus tradingStatus) => new()
+    public static TradingStatusModel ToModel(this TradingStatus tradingStatus) => new()
     {
         Figi = tradingStatus.Figi,
         Ticker = tradingStatus.Ticker,
@@ -88,7 +88,7 @@ public static class MarketDataModelExtensions
     /// <summary>
     /// Преобразует grpc-модель последней цены в независимую модель <see cref="LastPriceModel"/>.
     /// </summary>
-    public static LastPriceModel ToWrapper(this LastPrice lastPrice) => new()
+    public static LastPriceModel ToModel(this LastPrice lastPrice) => new()
     {
         Figi = lastPrice.Figi,
         Ticker = lastPrice.Ticker,
@@ -102,7 +102,7 @@ public static class MarketDataModelExtensions
     /// <summary>
     /// Преобразует grpc-модель открытого интереса в независимую модель <see cref="OpenInterestModel"/>.
     /// </summary>
-    public static OpenInterestModel ToWrapper(this OpenInterest openInterest) => new()
+    public static OpenInterestModel ToModel(this OpenInterest openInterest) => new()
     {
         Ticker = openInterest.Ticker,
         ClassCode = openInterest.ClassCode,

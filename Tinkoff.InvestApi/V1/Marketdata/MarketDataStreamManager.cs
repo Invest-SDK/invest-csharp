@@ -382,11 +382,11 @@ public class MarketDataStreamManager
         var streamGuid = stream.Guid;
         if (response.Candle != null && response.Candle.IsInitialized())
         {
-            await _context.PushCandleAsync(response.Candle.ToWrapper(isHistorical: false), streamGuid);
+            await _context.PushCandleAsync(response.Candle.ToModel(isHistorical: false), streamGuid);
         }
         else if (response.Trade != null && response.Trade.IsInitialized())
         {
-            await _context.PushTradeAsync(response.Trade.ToWrapper(), streamGuid);
+            await _context.PushTradeAsync(response.Trade.ToModel(), streamGuid);
         }
         else if (response.Orderbook != null && response.Orderbook.IsInitialized())
         {
@@ -394,15 +394,15 @@ public class MarketDataStreamManager
         }
         else if (response.LastPrice != null && response.LastPrice.IsInitialized())
         {
-            await _context.PushLastPriceAsync(response.LastPrice.ToWrapper(), streamGuid);
+            await _context.PushLastPriceAsync(response.LastPrice.ToModel(), streamGuid);
         }
         else if (response.OpenInterest != null && response.OpenInterest.IsInitialized())
         {
-            await _context.PushOpenInterestAsync(response.OpenInterest.ToWrapper(), streamGuid);
+            await _context.PushOpenInterestAsync(response.OpenInterest.ToModel(), streamGuid);
         }
         else if (response.TradingStatus != null && response.TradingStatus.IsInitialized())
         {
-            await _context.PushTradingStatusAsync(response.TradingStatus.ToWrapper(), streamGuid);
+            await _context.PushTradingStatusAsync(response.TradingStatus.ToModel(), streamGuid);
         }
     }
 
@@ -441,7 +441,7 @@ public class MarketDataStreamManager
         };
         var response = _client.GetCandles(request);
         var candles = response.Candles.Where(c => c.IsComplete)
-            .Select(c => MapCandle(c, instrument).ToWrapper(isHistorical: true))
+            .Select(c => MapCandle(c, instrument).ToModel(isHistorical: true))
             .ToList();
         candles.Sort((c1, c2) => (c1.Time ?? DateTime.MinValue).CompareTo(c2.Time ?? DateTime.MinValue));
 
