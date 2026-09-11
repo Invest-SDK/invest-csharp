@@ -1,36 +1,27 @@
-using Tinkoff.InvestApi.V1;
+namespace Tinkoff.InvestApi.V1.Marketdata.Models.Wrapper.Response;
 
-namespace Tinkoff.InvestApi.Stream.Marketdata.Models.Wrapper;
-
-public record OpenInterestWrapper(OpenInterest Response) : ResponseWrapper<OpenInterest>(Response)
+/// <summary>
+/// Независимая модель открытого интереса, значения которой инициализируются копированием из grpc-модели.
+/// </summary>
+public record OpenInterestWrapper
 {
+    /// <summary>
+    /// Тикер инструмента.
+    /// </summary>
+    public required string Ticker { get; init; }
 
     /// <summary>
-    /// Метод для получения тикера инструмента
+    /// Класс-код инструмента.
     /// </summary>
-    public String Ticker()
-    {
-        return Response.Ticker;
-    }
+    public required string ClassCode { get; init; }
 
     /// <summary>
-    /// Метод для получения класс-кода инструмента
+    /// Открытый интерес.
     /// </summary>
-    public String ClassCode()
-    {
-        return Response.ClassCode;
-    }
-
-    public long OpenInterest()
-    {
-        return Response.OpenInterest_;
-    }
+    public required long OpenInterest { get; init; }
 
     /// <summary>
-    /// Метод для получения UID инструмента
+    /// UID инструмента.
     /// </summary>
-    public String InstrumentUid()
-    {
-        return Response.InstrumentUid;
-    }
+    public required string InstrumentUid { get; init; }
 }

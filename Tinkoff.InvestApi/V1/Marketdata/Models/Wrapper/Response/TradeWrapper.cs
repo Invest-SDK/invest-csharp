@@ -1,79 +1,52 @@
-using Tinkoff.InvestApi.Stream.Marketdata.Models.Wrapper;
+namespace Tinkoff.InvestApi.V1.Marketdata.Models.Wrapper.Response;
 
-namespace Tinkoff.InvestApi.V1.Marketdata.Models.Wrapper;
-
-public record TradeWrapper(Trade Response) : ResponseWrapper<Trade>(Response)
+/// <summary>
+/// Независимая модель сделки, значения которой инициализируются копированием из grpc-модели.
+/// </summary>
+public record TradeWrapper
 {
-    
     /// <summary>
-    /// Метод для получения FIGI-идентификатора инструмента
+    /// FIGI-идентификатор инструмента.
     /// </summary>
-    public String Figi()
-    {
-        return Response.Figi;
-    }
+    public required string Figi { get; init; }
 
     /// <summary>
-    /// Метод для получения тикера инструмента
+    /// Тикер инструмента.
     /// </summary>
-    public String Ticker()
-    {
-        return Response.Ticker;
-    }
+    public required string Ticker { get; init; }
 
     /// <summary>
-    /// Метод для получения класс-кода инструмента
+    /// Класс-код инструмента.
     /// </summary>
-    public String ClassCode()
-    {
-        return Response.ClassCode;
-    }
+    public required string ClassCode { get; init; }
 
     /// <summary>
-    /// Метод для получения направления сделки
+    /// Направление сделки.
     /// </summary>
-    public TradeDirection Direction()
-    {
-        return Response.Direction;
-    }
+    public required TradeDirection Direction { get; init; }
 
     /// <summary>
-    /// Метод для получения цены
+    /// Цена сделки.
     /// </summary>
-    public decimal Price()
-    {
-        return Response.Price;
-    }
+    public required decimal Price { get; init; }
 
     /// <summary>
-    /// Метод для получения количества лотов
+    /// Количество лотов.
     /// </summary>
-    public long Quantity()
-    {
-        return Response.Quantity;
-    }
+    public required long Quantity { get; init; }
 
     /// <summary>
-    /// Метод для получения времени последнего обновления стакана по UTC
+    /// Время сделки по UTC.
     /// </summary>
-    public DateTime? Time()
-    {
-        return TimestampExtensions.ToDateTimeOrNull(Response.Time);
-    }
+    public required DateTime? Time { get; init; }
 
     /// <summary>
-    /// Метод для получения UID инструмента
+    /// UID инструмента.
     /// </summary>
-    public String InstrumentUid()
-    {
-        return Response.InstrumentUid;
-    }
+    public required string InstrumentUid { get; init; }
 
     /// <summary>
-    /// Метод для получения типа источника сделок
+    /// Тип источника сделок.
     /// </summary>
-    public TradeSourceType TradeSource()
-    {
-        return Response.TradeSource;
-    }
+    public required TradeSourceType TradeSource { get; init; }
 }

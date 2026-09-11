@@ -1,4 +1,4 @@
-namespace Tinkoff.InvestApi.V1.Marketdata.Wrappers;
+namespace Tinkoff.InvestApi.V1.Marketdata.Models.Wrapper.Request;
 
 /// <summary>
 /// Базовый класс для запросов подписки на market data

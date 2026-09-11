@@ -1,4 +1,4 @@
-namespace Tinkoff.InvestApi.Stream.Marketdata;
+namespace Tinkoff.InvestApi.V1.Marketdata;
 
 public enum MarketDataResponseType
 {

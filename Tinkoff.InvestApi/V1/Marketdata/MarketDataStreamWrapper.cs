@@ -3,11 +3,8 @@ using Google.Protobuf;
 using Grpc.Core;
 using Microsoft.Extensions.Logging;
 using Tinkoff.InvestApi.Stream;
-using Tinkoff.InvestApi.Stream.Marketdata;
-using Tinkoff.InvestApi.Stream.Marketdata.Models;
-using Tinkoff.InvestApi.Stream.Marketdata.Models.Wrapper;
-using Tinkoff.InvestApi.V1.Marketdata.Models.Wrapper;
-using Tinkoff.InvestApi.V1.Marketdata.Wrappers;
+using Tinkoff.InvestApi.V1.Marketdata.Models;
+using Tinkoff.InvestApi.V1.Marketdata.Models.Wrapper.Request;
 
 namespace Tinkoff.InvestApi.V1.Marketdata;
 

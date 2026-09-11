@@ -2,10 +2,9 @@ using System.Text.Json;
 using Microsoft.Extensions.Logging;
 using Tinkoff.InvestApi.Stream;
 using Tinkoff.InvestApi.Stream.Marketdata;
-using Tinkoff.InvestApi.Stream.Marketdata.Models;
-using Tinkoff.InvestApi.Stream.Marketdata.Models.Wrapper;
+using Tinkoff.InvestApi.V1.Marketdata.Models;
+using Tinkoff.InvestApi.V1.Marketdata.Models.Wrapper.Response;
 using Tinkoff.InvestApi.V1;
-using Tinkoff.InvestApi.V1.Marketdata;
 
 namespace Tinkoff.InvestApi.Examples.MarketDataStream;
 

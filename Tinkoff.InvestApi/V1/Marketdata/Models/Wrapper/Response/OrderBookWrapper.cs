@@ -1,93 +1,73 @@
-using Google.Protobuf.WellKnownTypes;
-using Tinkoff.InvestApi.V1;
+namespace Tinkoff.InvestApi.V1.Marketdata.Models.Wrapper.Response;
 
-namespace Tinkoff.InvestApi.Stream.Marketdata.Models.Wrapper;
-
-public record OrderBookWrapper(OrderBook Response) : ResponseWrapper<OrderBook>(Response)
+/// <summary>
+/// Независимая модель записи стакана, значения которой инициализируются копированием из grpc-модели.
+/// </summary>
+public record OrderWrapper
 {
-    private readonly List<OrderWrapper> bids = [.. Response.Bids.Select(x => new OrderWrapper(x))];
-    private readonly List<OrderWrapper> asks = [.. Response.Asks.Select(x => new OrderWrapper(x))];
+    /// <summary>
+    /// Цена записи.
+    /// </summary>
+    public required decimal Price { get; init; }
 
     /// <summary>
-    /// Метод для получения FIGI-идентификатора инструмента
+    /// Количество лотов.
     /// </summary>
-    public String Figi()
-    {
-        return Response.Figi;
-    }
+    public required long Quantity { get; init; }
+}
+
+/// <summary>
+/// Независимая модель стакана, значения которой инициализируются копированием из grpc-модели.
+/// </summary>
+public record OrderBookWrapper
+{
+    /// <summary>
+    /// FIGI-идентификатор инструмента.
+    /// </summary>
+    public required string Figi { get; init; }
 
     /// <summary>
-    /// Метод для получения тикера инструмента
+    /// Тикер инструмента.
     /// </summary>
-    public String Ticker()
-    {
-        return Response.Ticker;
-    }
+    public required string Ticker { get; init; }
 
     /// <summary>
-    /// Метод для получения класс-кода инструмента
+    /// Класс-код инструмента.
     /// </summary>
-    public String ClassCode()
-    {
-        return Response.ClassCode;
-    }
+    public required string ClassCode { get; init; }
 
     /// <summary>
-    /// Метод для получения глубины стакана
+    /// Глубина стакана.
     /// </summary>
-    public int Depth()
-    {
-        return Response.Depth;
-    }
+    public required int Depth { get; init; }
 
     /// <summary>
-    /// Метод для флага консистентности стакана
+    /// Флаг консистентности стакана.
     /// </summary>
-    public bool IsConsistent()
-    {
-        return Response.IsConsistent;
-    }
+    public required bool IsConsistent { get; init; }
 
     /// <summary>
-    /// Метод для получения времени последнего обновления стакана по UTC
+    /// Время последнего обновления стакана по UTC.
     /// </summary>
-    public DateTime? Time()
-    {
-        return TimestampExtensions.ToDateTimeOrNull(Response.Time);
-    }
+    public required DateTime? Time { get; init; }
 
     /// <summary>
-    /// Метод для получения UID инструмента
+    /// UID инструмента.
     /// </summary>
-    public String InstrumentUid()
-    {
-        return Response.InstrumentUid;
-    }
+    public required string InstrumentUid { get; init; }
 
     /// <summary>
-    /// Метод для получения типа стакана
+    /// Тип стакана.
     /// </summary>
-    public OrderBookType OrderBookType()
-    {
-        return Response.OrderBookType;
-    }
+    public required OrderBookType OrderBookType { get; init; }
 
-    public record OrderWrapper(Order Response) : ResponseWrapper<Order>(Response)
-    {
-        /// <summary>
-        /// Метод для получения цены
-        /// </summary>
-        public decimal Price()
-        {
-            return Response.Price;
-        }
+    /// <summary>
+    /// Заявки на покупку.
+    /// </summary>
+    public required IReadOnlyList<OrderWrapper> Bids { get; init; }
 
-        /// <summary>
-        /// Метод для получения количества лотов
-        /// </summary>
-        public long Quantity()
-        {
-            return Response.Quantity;
-        }
-    } 
+    /// <summary>
+    /// Заявки на продажу.
+    /// </summary>
+    public required IReadOnlyList<OrderWrapper> Asks { get; init; }
 }

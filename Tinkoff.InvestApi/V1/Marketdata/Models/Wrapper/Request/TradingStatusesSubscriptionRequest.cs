@@ -1,6 +1,4 @@
-using Tinkoff.InvestApi.Stream.Marketdata.Models;
-
-namespace Tinkoff.InvestApi.V1.Marketdata.Wrappers;
+namespace Tinkoff.InvestApi.V1.Marketdata.Models.Wrapper.Request;
 
 /// <summary>
 /// Запрос на подписку/отписку от сделок

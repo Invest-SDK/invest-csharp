@@ -1,10 +1,8 @@
 using System.Collections.Concurrent;
 using System.Threading.Channels;
-using Tinkoff.InvestApi.Stream.Marketdata.Models.Wrapper;
-using Tinkoff.InvestApi.V1;
-using Tinkoff.InvestApi.V1.Marketdata.Models.Wrapper;
+using Tinkoff.InvestApi.V1.Marketdata.Models.Wrapper.Response;
 
-namespace Tinkoff.InvestApi.Stream.Marketdata.Models;
+namespace Tinkoff.InvestApi.V1.Marketdata.Models;
 
 /// <summary>
 /// Общий контекст стримов market data.
@@ -244,7 +242,7 @@ public class MarketDataStreamContext
         {
             await handler(wrapper);
         }
-        await DispatchLocalAsync(localCandleHandlers, streamGuid, wrapper, new LocalSubscriptionKey(wrapper.Figi(), wrapper.InstrumentUid(), wrapper.Interval().ToString()));
+        await DispatchLocalAsync(localCandleHandlers, streamGuid, wrapper, new LocalSubscriptionKey(wrapper.Figi, wrapper.InstrumentUid, wrapper.Interval.ToString()));
     }
 
     internal async Task PushTradeAsync(TradeWrapper wrapper, Guid? streamGuid = null)
@@ -254,7 +252,7 @@ public class MarketDataStreamContext
         {
             await handler(wrapper);
         }
-        await DispatchLocalAsync(localTradeHandlers, streamGuid, wrapper, new LocalSubscriptionKey(wrapper.Figi(), wrapper.InstrumentUid(), string.Empty));
+        await DispatchLocalAsync(localTradeHandlers, streamGuid, wrapper, new LocalSubscriptionKey(wrapper.Figi, wrapper.InstrumentUid, string.Empty));
     }
 
     internal async Task PushOrderBookAsync(OrderBookWrapper wrapper, Guid? streamGuid = null)
@@ -266,8 +264,8 @@ public class MarketDataStreamContext
         }
         // Диспатчим по конкретному типу пуша и по подписке All: подписка с конкретным типом
         // получает только пуши того же типа, а подписка All — пуши любого типа.
-        await DispatchLocalAsync(localOrderBookHandlers, streamGuid, wrapper, new LocalSubscriptionKey(wrapper.Figi(), wrapper.InstrumentUid(), wrapper.OrderBookType().ToString()));
-        await DispatchLocalAsync(localOrderBookHandlers, streamGuid, wrapper, new LocalSubscriptionKey(wrapper.Figi(), wrapper.InstrumentUid(), OrderBookType.All.ToString()));
+        await DispatchLocalAsync(localOrderBookHandlers, streamGuid, wrapper, new LocalSubscriptionKey(wrapper.Figi, wrapper.InstrumentUid, wrapper.OrderBookType.ToString()));
+        await DispatchLocalAsync(localOrderBookHandlers, streamGuid, wrapper, new LocalSubscriptionKey(wrapper.Figi, wrapper.InstrumentUid, OrderBookType.All.ToString()));
     }
 
     internal async Task PushLastPriceAsync(LastPriceWrapper wrapper, Guid? streamGuid = null)
@@ -277,7 +275,7 @@ public class MarketDataStreamContext
         {
             await handler(wrapper);
         }
-        await DispatchLocalAsync(localLastPriceHandlers, streamGuid, wrapper, new LocalSubscriptionKey(wrapper.Figi(), wrapper.InstrumentUid(), string.Empty));
+        await DispatchLocalAsync(localLastPriceHandlers, streamGuid, wrapper, new LocalSubscriptionKey(wrapper.Figi, wrapper.InstrumentUid, string.Empty));
     }
 
     internal async Task PushOpenInterestAsync(OpenInterestWrapper wrapper, Guid? streamGuid = null)
@@ -287,7 +285,7 @@ public class MarketDataStreamContext
         {
             await handler(wrapper);
         }
-        await DispatchLocalAsync(localOpenInterestHandlers, streamGuid, wrapper, new LocalSubscriptionKey(string.Empty, wrapper.InstrumentUid(), string.Empty));
+        await DispatchLocalAsync(localOpenInterestHandlers, streamGuid, wrapper, new LocalSubscriptionKey(string.Empty, wrapper.InstrumentUid, string.Empty));
     }
 
     internal async Task PushTradingStatusAsync(TradingStatusWrapper wrapper, Guid? streamGuid = null)
@@ -297,7 +295,7 @@ public class MarketDataStreamContext
         {
             await handler(wrapper);
         }
-        await DispatchLocalAsync(localTradingStatusHandlers, streamGuid, wrapper, new LocalSubscriptionKey(wrapper.Figi(), wrapper.InstrumentUid(), string.Empty));
+        await DispatchLocalAsync(localTradingStatusHandlers, streamGuid, wrapper, new LocalSubscriptionKey(wrapper.Figi, wrapper.InstrumentUid, string.Empty));
     }
 }
 

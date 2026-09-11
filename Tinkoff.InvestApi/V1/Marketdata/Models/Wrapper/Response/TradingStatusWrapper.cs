@@ -1,71 +1,47 @@
-using Google.Protobuf.WellKnownTypes;
-using Tinkoff.InvestApi.V1;
+namespace Tinkoff.InvestApi.V1.Marketdata.Models.Wrapper.Response;
 
-namespace Tinkoff.InvestApi.Stream.Marketdata.Models.Wrapper;
-
-public record TradingStatusWrapper(TradingStatus Response) : ResponseWrapper<TradingStatus>(Response)
+/// <summary>
+/// Независимая модель торгового статуса, значения которой инициализируются копированием из grpc-модели.
+/// </summary>
+public record TradingStatusWrapper
 {
     /// <summary>
-    /// Метод для получения FIGI-идентификатора инструмента
+    /// FIGI-идентификатор инструмента.
     /// </summary>
-    public String Figi()
-    {
-        return Response.Figi;
-    }
+    public required string Figi { get; init; }
 
     /// <summary>
-    /// Метод для получения тикера инструмента
+    /// Тикер инструмента.
     /// </summary>
-    public String Ticker()
-    {
-        return Response.Ticker;
-    }
+    public required string Ticker { get; init; }
 
     /// <summary>
-    /// Метод для получения класс-кода инструмента
+    /// Класс-код инструмента.
     /// </summary>
-    public String ClassCode()
-    {
-        return Response.ClassCode;
-    }
+    public required string ClassCode { get; init; }
 
     /// <summary>
-    /// Метод для получения статуса торговли инструментом
+    /// Статус торговли инструментом.
     /// </summary>
-    public SecurityTradingStatus TradingStatus()
-    {
-        return Response.TradingStatus_;
-    }
+    public required SecurityTradingStatus TradingStatus { get; init; }
 
     /// <summary>
-    /// Метод для получения признака доступности выставления лимитной заявки по инструменту
+    /// Признак доступности выставления лимитной заявки по инструменту.
     /// </summary>
-    public bool LimitOrderAvailableFlag()
-    {
-        return Response.LimitOrderAvailableFlag;
-    }
+    public required bool LimitOrderAvailableFlag { get; init; }
 
     /// <summary>
-    /// Метод для получения признака доступности выставления рыночной заявки по инструменту
+    /// Признак доступности выставления рыночной заявки по инструменту.
     /// </summary>
-    public bool MarketOrderAvailableFlag()
-    {
-        return Response.MarketOrderAvailableFlag;
-    }
+    public required bool MarketOrderAvailableFlag { get; init; }
 
     /// <summary>
-    /// Метод для получения времени изменения торгового статуса по UTC
+    /// Время изменения торгового статуса по UTC.
     /// </summary>
-    public DateTime? Time()
-    {
-        return TimestampExtensions.ToDateTimeOrNull(Response.Time);
-    }
+    public required DateTime? Time { get; init; }
 
     /// <summary>
-    /// Метод для получения UID инструмента
+    /// UID инструмента.
     /// </summary>
-    public String InstrumentUid()
-    {
-        return Response.InstrumentUid;
-    }
+    public required string InstrumentUid { get; init; }
 }

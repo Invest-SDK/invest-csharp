@@ -1,5 +1,4 @@
-
-namespace Tinkoff.InvestApi.Stream.Marketdata.Models;
+namespace Tinkoff.InvestApi.V1.Marketdata.Models;
 
 public enum MarketDataSubscriptionStatus
 {

@@ -1,128 +1,87 @@
-using Google.Protobuf.WellKnownTypes;
-using Tinkoff.InvestApi.V1;
+namespace Tinkoff.InvestApi.V1.Marketdata.Models.Wrapper.Response;
 
-namespace Tinkoff.InvestApi.Stream.Marketdata.Models.Wrapper;
-
-public record CandleWrapper(Candle Response, bool IsHistorical) : ResponseWrapper<Candle>(Response)
+/// <summary>
+/// Независимая модель свечи, значения которой инициализируются копированием из grpc-модели.
+/// </summary>
+public record CandleWrapper
 {
+    /// <summary>
+    /// FIGI-идентификатор инструмента.
+    /// </summary>
+    public required string Figi { get; init; }
 
     /// <summary>
-    /// Метод для получения FIGI-идентификатора инструмента
+    /// Тикер инструмента.
     /// </summary>
-    public String Figi()
-    {
-        return Response.Figi;
-    }
+    public required string Ticker { get; init; }
 
     /// <summary>
-    /// Метод для получения тикера инструмента
+    /// Класс-код инструмента.
     /// </summary>
-    public String Ticker()
-    {
-        return Response.Ticker;
-    }
+    public required string ClassCode { get; init; }
 
     /// <summary>
-    /// Метод для получения класс-кода инструмента
+    /// Интервал свечи.
     /// </summary>
-    public String ClassCode()
-    {
-        return Response.ClassCode;
-    }
+    public required SubscriptionInterval Interval { get; init; }
 
     /// <summary>
-    /// Метод для получения интервала свечи
+    /// Цена открытия за 1 инструмент.
     /// </summary>
-    public SubscriptionInterval Interval()
-    {
-        return Response.Interval;
-    }
+    public required decimal Open { get; init; }
 
     /// <summary>
-    /// Метод для полуения цены открытия за 1 инструмент
+    /// Максимальная цена за 1 инструмент.
     /// </summary>
-    public decimal Open()
-    {
-        return Response.Open;
-    }
+    public required decimal High { get; init; }
 
     /// <summary>
-    /// Метод для полуения максимальной цены за 1 инструмент
+    /// Минимальная цена за 1 инструмент.
     /// </summary>
-    public decimal High()
-    {
-        return Response.High;
-    }
+    public required decimal Low { get; init; }
 
     /// <summary>
-    /// Метод для полуения минимальной цены за 1 инструмент
+    /// Цена закрытия за 1 инструмент.
     /// </summary>
-    public decimal Low()
-    {
-        return Response.Low;
-    }
+    public required decimal Close { get; init; }
 
     /// <summary>
-    /// Метод для полуения цены закрытия за 1 инструмент
+    /// Объём сделок в лотах.
     /// </summary>
-    public decimal Close()
-    {
-        return Response.Close;
-    }
+    public required long Volume { get; init; }
 
     /// <summary>
-    /// Метод для получения объёма сделок в лотах
+    /// Объём сделок в лотах на покупку.
     /// </summary>
-    public long Volume()
-    {
-        return Response.Volume;
-    }
+    public required long VolumeBuy { get; init; }
 
     /// <summary>
-    /// Метод для получения объёма сделок в лотах на покупку
+    /// Объём сделок в лотах на продажу.
     /// </summary>
-    public long VolumeBuy()
-    {
-        return Response.VolumeBuy;
-    }
+    public required long VolumeSell { get; init; }
 
     /// <summary>
-    /// Метод для получения объёма сделок в лотах на продажу
+    /// Время начала интервала свечи по UTC.
     /// </summary>
-    public long VolumeSell()
-    {
-        return Response.VolumeSell;
-    }
+    public required DateTime? Time { get; init; }
 
     /// <summary>
-    /// Мето для получения времени начала интервала свечи по UTC
+    /// Время последней сделки, вошедшей в свечу, по UTC.
     /// </summary>
-    public DateTime? Time()
-    {
-        return TimestampExtensions.ToDateTimeOrNull(Response.Time);
-    }
+    public required DateTime? LastTradeTime { get; init; }
 
     /// <summary>
-    /// Метод для получения времени последней сделки, вошедшей в свечу по UTC
+    /// UID инструмента.
     /// </summary>
-    public DateTime? LastTradeTime()
-    {
-        return TimestampExtensions.ToDateTimeOrNull(Response.LastTradeTs);
-    }
+    public required string InstrumentUid { get; init; }
 
     /// <summary>
-    /// Метод для получения UID инструмента
+    /// Тип источника свечей.
     /// </summary>
-    public String InstrumentUid()
-    {
-        return Response.InstrumentUid;
-    }
+    public required CandleSource CandleSourceType { get; init; }
 
     /// <summary>
-    /// Метод для получения типа источника свечей
+    /// Признак того, что свеча является исторической (получена при восстановлении подписки).
     /// </summary>
-    public CandleSource CandleSourceType()
-    {
-        return Response.CandleSourceType;
-    }
+    public required bool IsHistorical { get; init; }
 }

@@ -1,10 +1,7 @@
 using Google.Protobuf;
-using Tinkoff.InvestApi.Stream.Marketdata.Models;
-using Tinkoff.InvestApi.Stream.Marketdata.Models.Wrapper;
-using Tinkoff.InvestApi.V1;
-using Tinkoff.InvestApi.V1.Marketdata.Models.Wrapper;
+using Tinkoff.InvestApi.V1.Marketdata.Models;
 
-namespace Tinkoff.InvestApi.Stream.Marketdata;
+namespace Tinkoff.InvestApi.V1.Marketdata;
 
 public static class MarketDataUtils
 {

@@ -1,7 +1,6 @@
 using System.Threading.Tasks;
 using Grpc.Core;
 using Moq;
-using RichardSzalay.MockHttp;
 using Tinkoff.InvestApi.V1;
 
 namespace Tinkoff.InvestApi.Tests;

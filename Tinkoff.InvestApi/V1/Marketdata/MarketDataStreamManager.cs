@@ -1,12 +1,11 @@
 using System.Collections.Concurrent;
 using Google.Protobuf;
 using Microsoft.Extensions.Logging;
-using Tinkoff.InvestApi.Stream.Marketdata.Models;
-using Tinkoff.InvestApi.Stream.Marketdata.Models.Wrapper;
+using Tinkoff.InvestApi.V1.Marketdata.Models.Wrapper.Request;
+using Tinkoff.InvestApi.V1.Marketdata.Models.Wrapper.Response;
 using Tinkoff.InvestApi.V1;
 using Tinkoff.InvestApi.V1.Marketdata;
-using Tinkoff.InvestApi.V1.Marketdata.Models.Wrapper;
-using Tinkoff.InvestApi.V1.Marketdata.Wrappers;
+using Tinkoff.InvestApi.V1.Marketdata.Models;
 
 namespace Tinkoff.InvestApi.Stream.Marketdata;
 
@@ -383,27 +382,27 @@ public class MarketDataStreamManager
         var streamGuid = stream.Guid;
         if (response.Candle != null && response.Candle.IsInitialized())
         {
-            await _context.PushCandleAsync(new CandleWrapper(response.Candle, IsHistorical: false), streamGuid);
+            await _context.PushCandleAsync(response.Candle.ToWrapper(isHistorical: false), streamGuid);
         }
         else if (response.Trade != null && response.Trade.IsInitialized())
         {
-            await _context.PushTradeAsync(new TradeWrapper(response.Trade), streamGuid);
+            await _context.PushTradeAsync(response.Trade.ToWrapper(), streamGuid);
         }
         else if (response.Orderbook != null && response.Orderbook.IsInitialized())
         {
-            await _context.PushOrderBookAsync(new OrderBookWrapper(response.Orderbook), streamGuid);
+            await _context.PushOrderBookAsync(response.Orderbook.ToWrapper(), streamGuid);
         }
         else if (response.LastPrice != null && response.LastPrice.IsInitialized())
         {
-            await _context.PushLastPriceAsync(new LastPriceWrapper(response.LastPrice), streamGuid);
+            await _context.PushLastPriceAsync(response.LastPrice.ToWrapper(), streamGuid);
         }
         else if (response.OpenInterest != null && response.OpenInterest.IsInitialized())
         {
-            await _context.PushOpenInterestAsync(new OpenInterestWrapper(response.OpenInterest), streamGuid);
+            await _context.PushOpenInterestAsync(response.OpenInterest.ToWrapper(), streamGuid);
         }
         else if (response.TradingStatus != null && response.TradingStatus.IsInitialized())
         {
-            await _context.PushTradingStatusAsync(new TradingStatusWrapper(response.TradingStatus), streamGuid);
+            await _context.PushTradingStatusAsync(response.TradingStatus.ToWrapper(), streamGuid);
         }
     }
 
@@ -442,9 +441,10 @@ public class MarketDataStreamManager
         };
         var response = _client.GetCandles(request);
         var candles = response.Candles.Where(c => c.IsComplete)
-            .Select(c => new CandleWrapper(MapCandle(c, instrument), IsHistorical: true))
+            .Select(c => MapCandle(c, instrument).ToWrapper(isHistorical: true))
             .ToList();
-        candles.Sort((c1, c2) => c1.Time().Value.CompareTo(c2.Time().Value));
+        candles.Sort((c1, c2) => (c1.Time ?? DateTime.MinValue).CompareTo(c2.Time ?? DateTime.MinValue));
+
         candles.ForEach(async c =>
         {
             _logger?.LogDebug("Recovered candle: {Candle}", c);

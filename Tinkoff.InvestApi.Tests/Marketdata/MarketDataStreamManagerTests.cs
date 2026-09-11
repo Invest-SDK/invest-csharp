@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using Grpc.Net.Client;
 using Tinkoff.InvestApi.Stream;
 using Tinkoff.InvestApi.Stream.Marketdata;
-using Tinkoff.InvestApi.Stream.Marketdata.Models;
+using Tinkoff.InvestApi.V1.Marketdata.Models;
 using Tinkoff.InvestApi.V1;
 using Xunit.Abstractions;
 
@@ -45,10 +45,10 @@ public class MarketDataStreamManagerTests
             _output.WriteLine($"[{nameof(TestSubscribeTradesDoesNotDuplicateAcrossSeparateCalls)}] Подписка на сделки: A={instrumentA.Uid}, B={instrumentB.Uid}");
             await manager.SubscribeTradesAsync(
                 new[] { instrumentA },
-                onTrade: t => { tradesForListenerA.Add(t.InstrumentUid()); _output.WriteLine($"[A] сделка: {t.InstrumentUid()}"); return Task.CompletedTask; });
+                onTrade: t => { tradesForListenerA.Add(t.InstrumentUid); _output.WriteLine($"[A] сделка: {t.InstrumentUid}"); return Task.CompletedTask; });
             await manager.SubscribeTradesAsync(
                 new[] { instrumentB },
-                onTrade: t => { tradesForListenerB.Add(t.InstrumentUid()); _output.WriteLine($"[B] сделка: {t.InstrumentUid()}"); return Task.CompletedTask; });
+                onTrade: t => { tradesForListenerB.Add(t.InstrumentUid); _output.WriteLine($"[B] сделка: {t.InstrumentUid}"); return Task.CompletedTask; });
 
             await WaitUntilAsync(() => tradesForListenerA.Count == 1 && tradesForListenerB.Count == 1,
                 log: () => _output.WriteLine($"[{nameof(TestSubscribeTradesDoesNotDuplicateAcrossSeparateCalls)}] Ожидание доставки: A={tradesForListenerA.Count}, B={tradesForListenerB.Count}"));
@@ -81,7 +81,7 @@ public class MarketDataStreamManagerTests
             _output.WriteLine($"[{nameof(TestSubscribeByPartialInstrumentCompletes)}] Подписка по FIGI_ONLY (без uid/tickerClassCode)");
             var subscribeTask = manager.SubscribeTradesAsync(
                 new[] { instrument },
-                onTrade: t => { received.Add(t.InstrumentUid()); return Task.CompletedTask; });
+                onTrade: t => { received.Add(t.InstrumentUid); return Task.CompletedTask; });
 
             await Task.WhenAny(subscribeTask, Task.Delay(2000));
             subscribeTask.IsCompleted.Should().BeTrue("подписка по неполному инструменту не должна зависать");
@@ -120,10 +120,10 @@ public class MarketDataStreamManagerTests
             _output.WriteLine($"[{nameof(TestSubscribeCandlesWithDifferentIntervalsForSameInstrument)}] Подписка на свечи: {SubscriptionInterval.OneMinute} и {SubscriptionInterval.FiveMinutes}");
             await manager.SubscribeCandlesAsync(
                 new[] { instrumentOneMinute },
-                onCandle: c => { candlesReceived.Add(c.Interval()); _output.WriteLine($"[свеча] интервал={c.Interval()}"); return Task.CompletedTask; });
+                onCandle: c => { candlesReceived.Add(c.Interval); _output.WriteLine($"[свеча] интервал={c.Interval}"); return Task.CompletedTask; });
             await manager.SubscribeCandlesAsync(
                 new[] { instrumentFiveMinutes },
-                onCandle: c => { candlesReceived.Add(c.Interval()); _output.WriteLine($"[свеча] интервал={c.Interval()}"); return Task.CompletedTask; });
+                onCandle: c => { candlesReceived.Add(c.Interval); _output.WriteLine($"[свеча] интервал={c.Interval}"); return Task.CompletedTask; });
 
             await WaitUntilAsync(() => candlesReceived.Count >= 2,
                 log: () => _output.WriteLine($"[{nameof(TestSubscribeCandlesWithDifferentIntervalsForSameInstrument)}] Ожидание свечей: {candlesReceived.Count}"));
@@ -156,7 +156,7 @@ public class MarketDataStreamManagerTests
             _output.WriteLine($"[{nameof(TestSubscribeTradingStatusesDeliversToListener)}] Подписка на статусы: {instrument.Uid}");
             await manager.SubscribeTradingStatusesAsync(
                 new[] { instrument },
-                onTradingStatuses: s => { statusesReceived.Add(s.InstrumentUid()); _output.WriteLine($"[статус] {s.InstrumentUid()}"); return Task.CompletedTask; });
+                onTradingStatuses: s => { statusesReceived.Add(s.InstrumentUid); _output.WriteLine($"[статус] {s.InstrumentUid}"); return Task.CompletedTask; });
 
             await WaitUntilAsync(() => statusesReceived.Count >= 1,
                 log: () => _output.WriteLine($"[{nameof(TestSubscribeTradingStatusesDeliversToListener)}] Ожидание статуса: {statusesReceived.Count}"));
@@ -187,7 +187,7 @@ public class MarketDataStreamManagerTests
             _output.WriteLine($"[{nameof(TestSubscribeTradingStatusesWithSharedIntervalInstrumentStillDelivers)}] Подписка на статусы инструментом со «свечным» интервалом: {instrument.Uid}");
             await manager.SubscribeTradingStatusesAsync(
                 new[] { instrument },
-                onTradingStatuses: s => { statusesReceived.Add(s.InstrumentUid()); _output.WriteLine($"[статус] {s.InstrumentUid()}"); return Task.CompletedTask; });
+                onTradingStatuses: s => { statusesReceived.Add(s.InstrumentUid); _output.WriteLine($"[статус] {s.InstrumentUid}"); return Task.CompletedTask; });
 
             await WaitUntilAsync(() => statusesReceived.Count >= 1,
                 log: () => _output.WriteLine($"[{nameof(TestSubscribeTradingStatusesWithSharedIntervalInstrumentStillDelivers)}] Ожидание статуса: {statusesReceived.Count}"));
@@ -221,14 +221,14 @@ public class MarketDataStreamManagerTests
             _output.WriteLine($"[{nameof(TestSubscribeTradingStatusesTwiceRegistersBothListeners)}] Подписка №1 (слушатель A): {instrument.Uid}");
             await manager.SubscribeTradingStatusesAsync(
                 new[] { instrument },
-                onTradingStatuses: s => { statusesForListenerA.Add(s.InstrumentUid()); _output.WriteLine($"[A] статус: {s.InstrumentUid()}"); return Task.CompletedTask; });
+                onTradingStatuses: s => { statusesForListenerA.Add(s.InstrumentUid); _output.WriteLine($"[A] статус: {s.InstrumentUid}"); return Task.CompletedTask; });
 
             // Повторная подписка после активации первой; управление не открывает доступ к состоянию подписки,
             // поэтому активацию считаем состоявшейся после успешного завершения первой подписки.
             _output.WriteLine($"[{nameof(TestSubscribeTradingStatusesTwiceRegistersBothListeners)}] Подписка №2 (слушатель B): {instrument.Uid}");
             await manager.SubscribeTradingStatusesAsync(
                 new[] { instrument },
-                onTradingStatuses: s => { statusesForListenerB.Add(s.InstrumentUid()); _output.WriteLine($"[B] статус: {s.InstrumentUid()}"); return Task.CompletedTask; });
+                onTradingStatuses: s => { statusesForListenerB.Add(s.InstrumentUid); _output.WriteLine($"[B] статус: {s.InstrumentUid}"); return Task.CompletedTask; });
 
             await WaitUntilAsync(() => statusesForListenerA.Count >= 1 && statusesForListenerB.Count >= 1,
                 log: () => _output.WriteLine($"[{nameof(TestSubscribeTradingStatusesTwiceRegistersBothListeners)}] Ожидание доставки: A={statusesForListenerA.Count}, B={statusesForListenerB.Count}"));
@@ -261,7 +261,7 @@ public class MarketDataStreamManagerTests
             _output.WriteLine($"[{nameof(TestSubscribeOrderBookWithAllTypeDeliversToListener)}] Подписка на стакан (тип ALL, пуш Exchange): {instrument.Uid}");
             await manager.SubscribeOrderBookAsync(
                 new[] { instrument },
-                onOrderBook: ob => { orderBooksReceived.Add(ob.InstrumentUid()); _output.WriteLine($"[стакан] {ob.InstrumentUid()}"); return Task.CompletedTask; });
+                onOrderBook: ob => { orderBooksReceived.Add(ob.InstrumentUid); _output.WriteLine($"[стакан] {ob.InstrumentUid}"); return Task.CompletedTask; });
 
             await WaitUntilAsync(() => orderBooksReceived.Count >= 1,
                 log: () => _output.WriteLine($"[{nameof(TestSubscribeOrderBookWithAllTypeDeliversToListener)}] Ожидание стакана: {orderBooksReceived.Count}"));
@@ -294,7 +294,7 @@ public class MarketDataStreamManagerTests
             _output.WriteLine($"[{nameof(TestSubscribeOrderBookWithExplicitTypeIgnoresOtherType)}] Подписка на стакан (тип Exchange, пуш Dealer): {instrument.Uid}");
             await manager.SubscribeOrderBookAsync(
                 new[] { instrument },
-                onOrderBook: ob => { orderBooksReceived.Add(ob.InstrumentUid()); _output.WriteLine($"[стакан] {ob.InstrumentUid()} (не должен был прийти)"); return Task.CompletedTask; });
+                onOrderBook: ob => { orderBooksReceived.Add(ob.InstrumentUid); _output.WriteLine($"[стакан] {ob.InstrumentUid} (не должен был прийти)"); return Task.CompletedTask; });
 
             // Ждём достаточно времени, чтобы пуш гарантированно был обработан или отброшен (pollDelay 500 мс).
             _output.WriteLine($"[{nameof(TestSubscribeOrderBookWithExplicitTypeIgnoresOtherType)}] Ожидание 500 мс, чтобы пуш Dealer был обработан или отброшен...");

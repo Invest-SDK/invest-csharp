@@ -1,64 +1,42 @@
-using Google.Protobuf.WellKnownTypes;
-using Tinkoff.InvestApi.V1;
+namespace Tinkoff.InvestApi.V1.Marketdata.Models.Wrapper.Response;
 
-namespace Tinkoff.InvestApi.Stream.Marketdata.Models.Wrapper;
-
-public record LastPriceWrapper(LastPrice Response) : ResponseWrapper<LastPrice>(Response)
+/// <summary>
+/// Независимая модель последней цены, значения которой инициализируются копированием из grpc-модели.
+/// </summary>
+public record LastPriceWrapper
 {
+    /// <summary>
+    /// FIGI-идентификатор инструмента.
+    /// </summary>
+    public required string Figi { get; init; }
 
     /// <summary>
-    /// Метод для получения FIGI-идентификатора инструмента
+    /// Тикер инструмента.
     /// </summary>
-    public String Figi()
-    {
-        return Response.Figi;
-    }
+    public required string Ticker { get; init; }
 
     /// <summary>
-    /// Метод для получения тикера инструмента
+    /// Класс-код инструмента.
     /// </summary>
-    public String Ticker()
-    {
-        return Response.Ticker;
-    }
+    public required string ClassCode { get; init; }
 
     /// <summary>
-    /// Метод для получения класс-кода инструмента
+    /// Цена инструмента.
     /// </summary>
-    public String ClassCode()
-    {
-        return Response.ClassCode;
-    }
-    
-    /// <summary>
-    /// Метод для получения цены инструмента
-    /// </summary>
-    public decimal Price()
-    {
-        return Response.Price;
-    }
+    public required decimal Price { get; init; }
 
     /// <summary>
-    /// Метод для получения времени последней цены по UTC по времени биржи
+    /// Время последней цены по UTC.
     /// </summary>
-    public DateTime? Time()
-    {
-        return TimestampExtensions.ToDateTimeOrNull(Response.Time);
-    }
+    public required DateTime? Time { get; init; }
 
     /// <summary>
-    /// Метод для получения UID инструмента
+    /// UID инструмента.
     /// </summary>
-    public String InstrumentUid()
-    {
-        return Response.InstrumentUid;
-    }
+    public required string InstrumentUid { get; init; }
 
     /// <summary>
-    /// Метод для получения типа последней цены
+    /// Тип последней цены.
     /// </summary>
-    public LastPriceType Type()
-    {
-        return Response.LastPriceType;
-    }
+    public required LastPriceType Type { get; init; }
 }
