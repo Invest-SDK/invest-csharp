@@ -1,9 +1,9 @@
-namespace Tinkoff.InvestApi.V1.Marketdata.Models.Wrapper.Response;
+namespace Tinkoff.InvestApi.V1.Marketdata.Models.Response;
 
 /// <summary>
 /// Независимая модель свечи, значения которой инициализируются копированием из grpc-модели.
 /// </summary>
-public record CandleWrapper
+public record CandleModel
 {
     /// <summary>
     /// FIGI-идентификатор инструмента.

@@ -1,9 +1,9 @@
-namespace Tinkoff.InvestApi.V1.Marketdata.Models.Wrapper.Response;
+namespace Tinkoff.InvestApi.V1.Marketdata.Models.Response;
 
 /// <summary>
-/// Независимая модель сделки, значения которой инициализируются копированием из grpc-модели.
+/// Независимая модель последней цены, значения которой инициализируются копированием из grpc-модели.
 /// </summary>
-public record TradeWrapper
+public record LastPriceModel
 {
     /// <summary>
     /// FIGI-идентификатор инструмента.
@@ -21,22 +21,12 @@ public record TradeWrapper
     public required string ClassCode { get; init; }
 
     /// <summary>
-    /// Направление сделки.
-    /// </summary>
-    public required TradeDirection Direction { get; init; }
-
-    /// <summary>
-    /// Цена сделки.
+    /// Цена инструмента.
     /// </summary>
     public required decimal Price { get; init; }
 
     /// <summary>
-    /// Количество лотов.
-    /// </summary>
-    public required long Quantity { get; init; }
-
-    /// <summary>
-    /// Время сделки по UTC.
+    /// Время последней цены по UTC.
     /// </summary>
     public required DateTime? Time { get; init; }
 
@@ -46,7 +36,7 @@ public record TradeWrapper
     public required string InstrumentUid { get; init; }
 
     /// <summary>
-    /// Тип источника сделок.
+    /// Тип последней цены.
     /// </summary>
-    public required TradeSourceType TradeSource { get; init; }
+    public required LastPriceType Type { get; init; }
 }

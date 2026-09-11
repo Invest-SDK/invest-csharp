@@ -3,7 +3,7 @@ using Microsoft.Extensions.Logging;
 using Tinkoff.InvestApi.Stream;
 using Tinkoff.InvestApi.Stream.Marketdata;
 using Tinkoff.InvestApi.V1.Marketdata.Models;
-using Tinkoff.InvestApi.V1.Marketdata.Models.Wrapper.Response;
+using Tinkoff.InvestApi.V1.Marketdata.Models.Response;
 using Tinkoff.InvestApi.V1;
 
 namespace Tinkoff.InvestApi.Examples.MarketDataStream;
@@ -28,7 +28,7 @@ public class Example2(ILogger<Example2> logger, InvestApiClient investClient)
         .Where(x => x.ApiTradeAvailableFlag && x.TradingStatus == SecurityTradingStatus.NormalTrading)
         .Select(x => new MarketDataInstrument(uid: x.Uid, interval: SubscriptionInterval.OneMinute))
         .ToList();
-        Func<CandleWrapper, Task> onCandleHandler = (CandleWrapper candle) => 
+        Func<CandleModel, Task> onCandleHandler = (CandleModel candle) => 
         {
             logger?.LogInformation("Candle: {Candle}", JsonSerializer.Serialize(candle));
             return Task.CompletedTask;

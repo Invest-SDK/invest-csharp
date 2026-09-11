@@ -1,9 +1,9 @@
-namespace Tinkoff.InvestApi.V1.Marketdata.Models.Wrapper.Response;
+namespace Tinkoff.InvestApi.V1.Marketdata.Models.Response;
 
 /// <summary>
 /// Независимая модель открытого интереса, значения которой инициализируются копированием из grpc-модели.
 /// </summary>
-public record OpenInterestWrapper
+public record OpenInterestModel
 {
     /// <summary>
     /// Тикер инструмента.

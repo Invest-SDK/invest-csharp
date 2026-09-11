@@ -1,6 +1,6 @@
 using System.Collections.Concurrent;
 using System.Threading.Channels;
-using Tinkoff.InvestApi.V1.Marketdata.Models.Wrapper.Response;
+using Tinkoff.InvestApi.V1.Marketdata.Models.Response;
 
 namespace Tinkoff.InvestApi.V1.Marketdata.Models;
 
@@ -13,72 +13,72 @@ namespace Tinkoff.InvestApi.V1.Marketdata.Models;
 public class MarketDataStreamContext
 {
     // Candle
-    private readonly ConcurrentQueue<Func<CandleWrapper, Task>> globalCandleEventQueue = new();
-    private readonly Channel<CandleWrapper> candlesChannel = Channel.CreateUnbounded<CandleWrapper>(new UnboundedChannelOptions { SingleReader = true });
+    private readonly ConcurrentQueue<Func<CandleModel, Task>> globalCandleEventQueue = new();
+    private readonly Channel<CandleModel> candlesChannel = Channel.CreateUnbounded<CandleModel>(new UnboundedChannelOptions { SingleReader = true });
     // Trade
-    private readonly ConcurrentQueue<Func<TradeWrapper, Task>> globalTradeEventQueue = new();
-    private readonly Channel<TradeWrapper> tradesChannel = Channel.CreateUnbounded<TradeWrapper>(new UnboundedChannelOptions { SingleReader = true });
+    private readonly ConcurrentQueue<Func<TradeModel, Task>> globalTradeEventQueue = new();
+    private readonly Channel<TradeModel> tradesChannel = Channel.CreateUnbounded<TradeModel>(new UnboundedChannelOptions { SingleReader = true });
 
     // OrderBook
-    private readonly ConcurrentQueue<Func<OrderBookWrapper, Task>> globalOrderBookEventQueue = new();
-    private readonly Channel<OrderBookWrapper> orderBooksChannel = Channel.CreateUnbounded<OrderBookWrapper>(new UnboundedChannelOptions { SingleReader = true });
+    private readonly ConcurrentQueue<Func<OrderBookModel, Task>> globalOrderBookEventQueue = new();
+    private readonly Channel<OrderBookModel> orderBooksChannel = Channel.CreateUnbounded<OrderBookModel>(new UnboundedChannelOptions { SingleReader = true });
 
     // LastPrice
-    private readonly ConcurrentQueue<Func<LastPriceWrapper, Task>> globalLastPriceEventQueue = new();
-    private readonly Channel<LastPriceWrapper> lastPricesChannel = Channel.CreateUnbounded<LastPriceWrapper>(new UnboundedChannelOptions { SingleReader = true });
+    private readonly ConcurrentQueue<Func<LastPriceModel, Task>> globalLastPriceEventQueue = new();
+    private readonly Channel<LastPriceModel> lastPricesChannel = Channel.CreateUnbounded<LastPriceModel>(new UnboundedChannelOptions { SingleReader = true });
 
     // OpenInterest
-    private readonly ConcurrentQueue<Func<OpenInterestWrapper, Task>> globalOpenInterestEventQueue = new();
-    private readonly Channel<OpenInterestWrapper> openInterestsChannel = Channel.CreateUnbounded<OpenInterestWrapper>(new UnboundedChannelOptions { SingleReader = true });
+    private readonly ConcurrentQueue<Func<OpenInterestModel, Task>> globalOpenInterestEventQueue = new();
+    private readonly Channel<OpenInterestModel> openInterestsChannel = Channel.CreateUnbounded<OpenInterestModel>(new UnboundedChannelOptions { SingleReader = true });
 
     // TradingStatus
-    private readonly ConcurrentQueue<Func<TradingStatusWrapper, Task>> globalTradingStatusEventQueue = new();
-    private readonly Channel<TradingStatusWrapper> tradingStatusesChannel = Channel.CreateUnbounded<TradingStatusWrapper>(new UnboundedChannelOptions { SingleReader = true });
+    private readonly ConcurrentQueue<Func<TradingStatusModel, Task>> globalTradingStatusEventQueue = new();
+    private readonly Channel<TradingStatusModel> tradingStatusesChannel = Channel.CreateUnbounded<TradingStatusModel>(new UnboundedChannelOptions { SingleReader = true });
 
     // Локальные (постримовые) обработчики: streamGuid -> (instrumentKey -> список обработчиков).
     // Регистрируются через Subscribe*Async и вызываются только для ответов конкретного стрима и инструмента.
-    private readonly ConcurrentDictionary<Guid, ConcurrentDictionary<LocalSubscriptionKey, ConcurrentQueue<Func<CandleWrapper, Task>>>> localCandleHandlers = new();
-    private readonly ConcurrentDictionary<Guid, ConcurrentDictionary<LocalSubscriptionKey, ConcurrentQueue<Func<TradeWrapper, Task>>>> localTradeHandlers = new();
-    private readonly ConcurrentDictionary<Guid, ConcurrentDictionary<LocalSubscriptionKey, ConcurrentQueue<Func<OrderBookWrapper, Task>>>> localOrderBookHandlers = new();
-    private readonly ConcurrentDictionary<Guid, ConcurrentDictionary<LocalSubscriptionKey, ConcurrentQueue<Func<LastPriceWrapper, Task>>>> localLastPriceHandlers = new();
-    private readonly ConcurrentDictionary<Guid, ConcurrentDictionary<LocalSubscriptionKey, ConcurrentQueue<Func<OpenInterestWrapper, Task>>>> localOpenInterestHandlers = new();
-    private readonly ConcurrentDictionary<Guid, ConcurrentDictionary<LocalSubscriptionKey, ConcurrentQueue<Func<TradingStatusWrapper, Task>>>> localTradingStatusHandlers = new();
+    private readonly ConcurrentDictionary<Guid, ConcurrentDictionary<LocalSubscriptionKey, ConcurrentQueue<Func<CandleModel, Task>>>> localCandleHandlers = new();
+    private readonly ConcurrentDictionary<Guid, ConcurrentDictionary<LocalSubscriptionKey, ConcurrentQueue<Func<TradeModel, Task>>>> localTradeHandlers = new();
+    private readonly ConcurrentDictionary<Guid, ConcurrentDictionary<LocalSubscriptionKey, ConcurrentQueue<Func<OrderBookModel, Task>>>> localOrderBookHandlers = new();
+    private readonly ConcurrentDictionary<Guid, ConcurrentDictionary<LocalSubscriptionKey, ConcurrentQueue<Func<LastPriceModel, Task>>>> localLastPriceHandlers = new();
+    private readonly ConcurrentDictionary<Guid, ConcurrentDictionary<LocalSubscriptionKey, ConcurrentQueue<Func<OpenInterestModel, Task>>>> localOpenInterestHandlers = new();
+    private readonly ConcurrentDictionary<Guid, ConcurrentDictionary<LocalSubscriptionKey, ConcurrentQueue<Func<TradingStatusModel, Task>>>> localTradingStatusHandlers = new();
 
     /// <summary>
     /// Регистрирует глобальный обработчик свечей, вызываемый для ответов любого стрима.
     /// </summary>
-    public void OnCandle(Func<CandleWrapper, Task> handler) => globalCandleEventQueue.Enqueue(handler);
+    public void OnCandle(Func<CandleModel, Task> handler) => globalCandleEventQueue.Enqueue(handler);
 
     /// <summary>
     /// Регистрирует глобальный обработчик сделок, вызываемый для ответов любого стрима.
     /// </summary>
-    public void OnTrade(Func<TradeWrapper, Task> handler) => globalTradeEventQueue.Enqueue(handler);
+    public void OnTrade(Func<TradeModel, Task> handler) => globalTradeEventQueue.Enqueue(handler);
 
     /// <summary>
     /// Регистрирует глобальный обработчик стаканов, вызываемый для ответов любого стрима.
     /// </summary>
-    public void OnOrderBook(Func<OrderBookWrapper, Task> handler) => globalOrderBookEventQueue.Enqueue(handler);
+    public void OnOrderBook(Func<OrderBookModel, Task> handler) => globalOrderBookEventQueue.Enqueue(handler);
 
     /// <summary>
     /// Регистрирует глобальный обработчик цен последней сделки, вызываемый для ответов любого стрима.
     /// </summary>
-    public void OnLastPrice(Func<LastPriceWrapper, Task> handler) => globalLastPriceEventQueue.Enqueue(handler);
+    public void OnLastPrice(Func<LastPriceModel, Task> handler) => globalLastPriceEventQueue.Enqueue(handler);
 
     /// <summary>
     /// Регистрирует глобальный обработчик открытых позиций, вызываемый для ответов любого стрима.
     /// </summary>
-    public void OnOpenInterest(Func<OpenInterestWrapper, Task> handler) => globalOpenInterestEventQueue.Enqueue(handler);
+    public void OnOpenInterest(Func<OpenInterestModel, Task> handler) => globalOpenInterestEventQueue.Enqueue(handler);
 
     /// <summary>
     /// Регистрирует глобальный обработчик статусов торговли, вызываемый для ответов любого стрима.
     /// </summary>
-    public void OnTradingStatus(Func<TradingStatusWrapper, Task> handler) => globalTradingStatusEventQueue.Enqueue(handler);
+    public void OnTradingStatus(Func<TradingStatusModel, Task> handler) => globalTradingStatusEventQueue.Enqueue(handler);
 
     /// <summary>
     /// Регистрирует локальный обработчик свечей для конкретного стрима и инструмента.
     /// Вызывается только для ответов со стрима <paramref name="streamGuid"/> по инструменту <paramref name="instrumentKey"/>.
     /// </summary>
-    internal void RegisterLocalCandleHandler(Guid streamGuid, LocalSubscriptionKey instrumentKey, Func<CandleWrapper, Task> handler)
+    internal void RegisterLocalCandleHandler(Guid streamGuid, LocalSubscriptionKey instrumentKey, Func<CandleModel, Task> handler)
         => RegisterLocal(localCandleHandlers, streamGuid, instrumentKey, handler);
 
     /// <summary>
@@ -90,7 +90,7 @@ public class MarketDataStreamContext
     /// <summary>
     /// Регистрирует локальный обработчик сделок для конкретного стрима и инструмента.
     /// </summary>
-    internal void RegisterLocalTradeHandler(Guid streamGuid, LocalSubscriptionKey instrumentKey, Func<TradeWrapper, Task> handler)
+    internal void RegisterLocalTradeHandler(Guid streamGuid, LocalSubscriptionKey instrumentKey, Func<TradeModel, Task> handler)
         => RegisterLocal(localTradeHandlers, streamGuid, instrumentKey, handler);
 
     /// <summary>
@@ -102,7 +102,7 @@ public class MarketDataStreamContext
     /// <summary>
     /// Регистрирует локальный обработчик стаканов для конкретного стрима и инструмента.
     /// </summary>
-    internal void RegisterLocalOrderBookHandler(Guid streamGuid, LocalSubscriptionKey instrumentKey, Func<OrderBookWrapper, Task> handler)
+    internal void RegisterLocalOrderBookHandler(Guid streamGuid, LocalSubscriptionKey instrumentKey, Func<OrderBookModel, Task> handler)
         => RegisterLocal(localOrderBookHandlers, streamGuid, instrumentKey, handler);
 
     /// <summary>
@@ -114,7 +114,7 @@ public class MarketDataStreamContext
     /// <summary>
     /// Регистрирует локальный обработчик цен последней сделки для конкретного стрима и инструмента.
     /// </summary>
-    internal void RegisterLocalLastPriceHandler(Guid streamGuid, LocalSubscriptionKey instrumentKey, Func<LastPriceWrapper, Task> handler)
+    internal void RegisterLocalLastPriceHandler(Guid streamGuid, LocalSubscriptionKey instrumentKey, Func<LastPriceModel, Task> handler)
         => RegisterLocal(localLastPriceHandlers, streamGuid, instrumentKey, handler);
 
     /// <summary>
@@ -126,7 +126,7 @@ public class MarketDataStreamContext
     /// <summary>
     /// Регистрирует локальный обработчик открытых позиций для конкретного стрима и инструмента.
     /// </summary>
-    internal void RegisterLocalOpenInterestHandler(Guid streamGuid, LocalSubscriptionKey instrumentKey, Func<OpenInterestWrapper, Task> handler)
+    internal void RegisterLocalOpenInterestHandler(Guid streamGuid, LocalSubscriptionKey instrumentKey, Func<OpenInterestModel, Task> handler)
         => RegisterLocal(localOpenInterestHandlers, streamGuid, instrumentKey, handler);
 
     /// <summary>
@@ -138,7 +138,7 @@ public class MarketDataStreamContext
     /// <summary>
     /// Регистрирует локальный обработчик торговых статусов для конкретного стрима и инструмента.
     /// </summary>
-    internal void RegisterLocalTradingStatusHandler(Guid streamGuid, LocalSubscriptionKey instrumentKey, Func<TradingStatusWrapper, Task> handler)
+    internal void RegisterLocalTradingStatusHandler(Guid streamGuid, LocalSubscriptionKey instrumentKey, Func<TradingStatusModel, Task> handler)
         => RegisterLocal(localTradingStatusHandlers, streamGuid, instrumentKey, handler);
 
     /// <summary>
@@ -202,40 +202,40 @@ public class MarketDataStreamContext
     /// <summary>
     /// Асинхронно читает следующую свечу из общего канала.
     /// </summary>
-    public ValueTask<CandleWrapper> GetCandlesAsync(CancellationToken cancellationToken = default) =>
+    public ValueTask<CandleModel> GetCandlesAsync(CancellationToken cancellationToken = default) =>
         candlesChannel.Reader.ReadAsync(cancellationToken);
 
     /// <summary>
     /// Асинхронно читает следующую сделку из общего канала.
     /// </summary>
-    public ValueTask<TradeWrapper> GetTradesAsync(CancellationToken cancellationToken = default) =>
+    public ValueTask<TradeModel> GetTradesAsync(CancellationToken cancellationToken = default) =>
         tradesChannel.Reader.ReadAsync(cancellationToken);
 
     /// <summary>
     /// Асинхронно читает следующий стакан из общего канала.
     /// </summary>
-    public ValueTask<OrderBookWrapper> GetOrderBooksAsync(CancellationToken cancellationToken = default) =>
+    public ValueTask<OrderBookModel> GetOrderBooksAsync(CancellationToken cancellationToken = default) =>
         orderBooksChannel.Reader.ReadAsync(cancellationToken);
 
     /// <summary>
     /// Асинхронно читает следующую цену последней сделки из общего канала.
     /// </summary>
-    public ValueTask<LastPriceWrapper> GetLastPricesAsync(CancellationToken cancellationToken = default) =>
+    public ValueTask<LastPriceModel> GetLastPricesAsync(CancellationToken cancellationToken = default) =>
         lastPricesChannel.Reader.ReadAsync(cancellationToken);
 
     /// <summary>
     /// Асинхронно читает следующее значение открытых позиций из общего канала.
     /// </summary>
-    public ValueTask<OpenInterestWrapper> GetOpenInterestsAsync(CancellationToken cancellationToken = default) =>
+    public ValueTask<OpenInterestModel> GetOpenInterestsAsync(CancellationToken cancellationToken = default) =>
         openInterestsChannel.Reader.ReadAsync(cancellationToken);
 
     /// <summary>
     /// Асинхронно читает следующий статус торговли из общего канала.
     /// </summary>
-    public ValueTask<TradingStatusWrapper> GetTradingStatusesAsync(CancellationToken cancellationToken = default) =>
+    public ValueTask<TradingStatusModel> GetTradingStatusesAsync(CancellationToken cancellationToken = default) =>
         tradingStatusesChannel.Reader.ReadAsync(cancellationToken);
 
-    internal async Task PushCandleAsync(CandleWrapper wrapper, Guid? streamGuid = null)
+    internal async Task PushCandleAsync(CandleModel wrapper, Guid? streamGuid = null)
     {
         await candlesChannel.Writer.WriteAsync(wrapper);
         foreach (var handler in globalCandleEventQueue)
@@ -245,7 +245,7 @@ public class MarketDataStreamContext
         await DispatchLocalAsync(localCandleHandlers, streamGuid, wrapper, new LocalSubscriptionKey(wrapper.Figi, wrapper.InstrumentUid, wrapper.Interval.ToString()));
     }
 
-    internal async Task PushTradeAsync(TradeWrapper wrapper, Guid? streamGuid = null)
+    internal async Task PushTradeAsync(TradeModel wrapper, Guid? streamGuid = null)
     {
         await tradesChannel.Writer.WriteAsync(wrapper);
         foreach (var handler in globalTradeEventQueue)
@@ -255,7 +255,7 @@ public class MarketDataStreamContext
         await DispatchLocalAsync(localTradeHandlers, streamGuid, wrapper, new LocalSubscriptionKey(wrapper.Figi, wrapper.InstrumentUid, string.Empty));
     }
 
-    internal async Task PushOrderBookAsync(OrderBookWrapper wrapper, Guid? streamGuid = null)
+    internal async Task PushOrderBookAsync(OrderBookModel wrapper, Guid? streamGuid = null)
     {
         await orderBooksChannel.Writer.WriteAsync(wrapper);
         foreach (var handler in globalOrderBookEventQueue)
@@ -268,7 +268,7 @@ public class MarketDataStreamContext
         await DispatchLocalAsync(localOrderBookHandlers, streamGuid, wrapper, new LocalSubscriptionKey(wrapper.Figi, wrapper.InstrumentUid, OrderBookType.All.ToString()));
     }
 
-    internal async Task PushLastPriceAsync(LastPriceWrapper wrapper, Guid? streamGuid = null)
+    internal async Task PushLastPriceAsync(LastPriceModel wrapper, Guid? streamGuid = null)
     {
         await lastPricesChannel.Writer.WriteAsync(wrapper);
         foreach (var handler in globalLastPriceEventQueue)
@@ -278,7 +278,7 @@ public class MarketDataStreamContext
         await DispatchLocalAsync(localLastPriceHandlers, streamGuid, wrapper, new LocalSubscriptionKey(wrapper.Figi, wrapper.InstrumentUid, string.Empty));
     }
 
-    internal async Task PushOpenInterestAsync(OpenInterestWrapper wrapper, Guid? streamGuid = null)
+    internal async Task PushOpenInterestAsync(OpenInterestModel wrapper, Guid? streamGuid = null)
     {
         await openInterestsChannel.Writer.WriteAsync(wrapper);
         foreach (var handler in globalOpenInterestEventQueue)
@@ -288,7 +288,7 @@ public class MarketDataStreamContext
         await DispatchLocalAsync(localOpenInterestHandlers, streamGuid, wrapper, new LocalSubscriptionKey(string.Empty, wrapper.InstrumentUid, string.Empty));
     }
 
-    internal async Task PushTradingStatusAsync(TradingStatusWrapper wrapper, Guid? streamGuid = null)
+    internal async Task PushTradingStatusAsync(TradingStatusModel wrapper, Guid? streamGuid = null)
     {
         await tradingStatusesChannel.Writer.WriteAsync(wrapper);
         foreach (var handler in globalTradingStatusEventQueue)

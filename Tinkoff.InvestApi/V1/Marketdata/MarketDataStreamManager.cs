@@ -1,8 +1,8 @@
 using System.Collections.Concurrent;
 using Google.Protobuf;
 using Microsoft.Extensions.Logging;
-using Tinkoff.InvestApi.V1.Marketdata.Models.Wrapper.Request;
-using Tinkoff.InvestApi.V1.Marketdata.Models.Wrapper.Response;
+using Tinkoff.InvestApi.V1.Marketdata.Models.Request;
+using Tinkoff.InvestApi.V1.Marketdata.Models.Response;
 using Tinkoff.InvestApi.V1;
 using Tinkoff.InvestApi.V1.Marketdata;
 using Tinkoff.InvestApi.V1.Marketdata.Models;
@@ -104,7 +104,7 @@ public class MarketDataStreamManager
     public Task SubscribeCandlesAsync(
         IEnumerable<MarketDataInstrument> instruments,
         CancellationToken cancellationToken = default,
-        Func<CandleWrapper, Task>? onCandle = null)
+        Func<CandleModel, Task>? onCandle = null)
         => RouteSubscribeAsync(
             instruments.ToList(),
             i => SubscriptionKey(MarketDataResponseType.CANDLE, i.Figi, i.Uid),
@@ -131,7 +131,7 @@ public class MarketDataStreamManager
     public Task SubscribeOrderBookAsync(
         IEnumerable<MarketDataInstrument> instruments,
         CancellationToken cancellationToken = default,
-        Func<OrderBookWrapper, Task>? onOrderBook = null)
+        Func<OrderBookModel, Task>? onOrderBook = null)
         => RouteSubscribeAsync(
             instruments.ToList(),
             i => SubscriptionKey(MarketDataResponseType.ORDER_BOOK, i.Figi, i.Uid),
@@ -158,7 +158,7 @@ public class MarketDataStreamManager
     public Task SubscribeTradesAsync(
         IEnumerable<MarketDataInstrument> instruments,
         CancellationToken cancellationToken = default,
-        Func<TradeWrapper, Task>? onTrade = null)
+        Func<TradeModel, Task>? onTrade = null)
         => RouteSubscribeAsync(
             instruments.ToList(),
             i => SubscriptionKey(MarketDataResponseType.TRADE, i.Figi, i.Uid),
@@ -185,7 +185,7 @@ public class MarketDataStreamManager
     public Task SubscribeTradingStatusesAsync(
         IEnumerable<MarketDataInstrument> instruments,
         CancellationToken cancellationToken = default,
-        Func<TradingStatusWrapper, Task>? onTradingStatuses = null)
+        Func<TradingStatusModel, Task>? onTradingStatuses = null)
         => RouteSubscribeAsync(
             instruments.ToList(),
             i => SubscriptionKey(MarketDataResponseType.TRADING_STATUS, i.Figi, i.Uid),
@@ -212,7 +212,7 @@ public class MarketDataStreamManager
     public Task SubscribeLastPriceAsync(
         IEnumerable<MarketDataInstrument> instruments,
         CancellationToken cancellationToken = default,
-        Func<LastPriceWrapper, Task>? onLastPrice = null)
+        Func<LastPriceModel, Task>? onLastPrice = null)
         => RouteSubscribeAsync(
             instruments.ToList(),
             i => SubscriptionKey(MarketDataResponseType.LAST_PRICE, i.Figi, i.Uid),
@@ -239,7 +239,7 @@ public class MarketDataStreamManager
     public Task SubscribeOpenInterestAsync(
         IEnumerable<MarketDataInstrument> instruments,
         CancellationToken cancellationToken = default,
-        Func<OpenInterestWrapper, Task>? onOpenInterest = null)
+        Func<OpenInterestModel, Task>? onOpenInterest = null)
         => RouteSubscribeAsync(
             instruments.ToList(),
             i => SubscriptionKey(MarketDataResponseType.OPEN_INTEREST, i.Figi, i.Uid),
@@ -473,22 +473,22 @@ public class MarketDataStreamManager
             switch (responseType)
             {
                 case MarketDataResponseType.CANDLE:
-                    _context.RegisterLocalCandleHandler(stream.Guid, key, (Func<CandleWrapper, Task>)handler);
+                    _context.RegisterLocalCandleHandler(stream.Guid, key, (Func<CandleModel, Task>)handler);
                     break;
                 case MarketDataResponseType.ORDER_BOOK:
-                    _context.RegisterLocalOrderBookHandler(stream.Guid, key, (Func<OrderBookWrapper, Task>)handler);
+                    _context.RegisterLocalOrderBookHandler(stream.Guid, key, (Func<OrderBookModel, Task>)handler);
                     break;
                 case MarketDataResponseType.TRADE:
-                    _context.RegisterLocalTradeHandler(stream.Guid, key, (Func<TradeWrapper, Task>)handler);
+                    _context.RegisterLocalTradeHandler(stream.Guid, key, (Func<TradeModel, Task>)handler);
                     break;
                 case MarketDataResponseType.LAST_PRICE:
-                    _context.RegisterLocalLastPriceHandler(stream.Guid, key, (Func<LastPriceWrapper, Task>)handler);
+                    _context.RegisterLocalLastPriceHandler(stream.Guid, key, (Func<LastPriceModel, Task>)handler);
                     break;
                 case MarketDataResponseType.OPEN_INTEREST:
-                    _context.RegisterLocalOpenInterestHandler(stream.Guid, key, (Func<OpenInterestWrapper, Task>)handler);
+                    _context.RegisterLocalOpenInterestHandler(stream.Guid, key, (Func<OpenInterestModel, Task>)handler);
                     break;
                 case MarketDataResponseType.TRADING_STATUS:
-                    _context.RegisterLocalTradingStatusHandler(stream.Guid, key, (Func<TradingStatusWrapper, Task>)handler);
+                    _context.RegisterLocalTradingStatusHandler(stream.Guid, key, (Func<TradingStatusModel, Task>)handler);
                     break;
             }
         }

@@ -4,7 +4,7 @@ using Grpc.Core;
 using Microsoft.Extensions.Logging;
 using Tinkoff.InvestApi.Stream;
 using Tinkoff.InvestApi.V1.Marketdata.Models;
-using Tinkoff.InvestApi.V1.Marketdata.Models.Wrapper.Request;
+using Tinkoff.InvestApi.V1.Marketdata.Models.Request;
 
 namespace Tinkoff.InvestApi.V1.Marketdata;
 

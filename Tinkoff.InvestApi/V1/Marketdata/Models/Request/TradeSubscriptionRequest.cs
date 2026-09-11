@@ -1,14 +1,14 @@
-namespace Tinkoff.InvestApi.V1.Marketdata.Models.Wrapper.Request;
+namespace Tinkoff.InvestApi.V1.Marketdata.Models.Request;
 
 /// <summary>
-/// Запрос на подписку/отписку от цены последней сделки
+/// Запрос на подписку/отписку от сделок
 /// </summary>
-public class LastPriceSubscriptionRequest : SubscriptionRequestBase
+public class TradeSubscriptionRequest : SubscriptionRequestBase
 {
     private readonly List<MarketDataInstrument> _instruments;
     private readonly SubscriptionAction _action;
 
-    public LastPriceSubscriptionRequest(SubscriptionAction action, IEnumerable<MarketDataInstrument> instruments)
+    public TradeSubscriptionRequest(SubscriptionAction action, IEnumerable<MarketDataInstrument> instruments)
     {
         _action = action;
         _instruments = instruments.ToList();
@@ -22,12 +22,12 @@ public class LastPriceSubscriptionRequest : SubscriptionRequestBase
     {
         return new MarketDataRequest
         {
-            SubscribeLastPriceRequest = new SubscribeLastPriceRequest
+            SubscribeTradesRequest = new SubscribeTradesRequest
             {
                 SubscriptionAction = _action,
                 Instruments = { _instruments.Select(x =>
                 {
-                    return new LastPriceInstrument
+                    return new TradeInstrument
                     {
                         InstrumentId = x.Uid,
                         Figi = x.Figi

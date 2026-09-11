@@ -1,9 +1,9 @@
-namespace Tinkoff.InvestApi.V1.Marketdata.Models.Wrapper.Response;
+namespace Tinkoff.InvestApi.V1.Marketdata.Models.Response;
 
 /// <summary>
 /// Независимая модель записи стакана, значения которой инициализируются копированием из grpc-модели.
 /// </summary>
-public record OrderWrapper
+public record OrderModel
 {
     /// <summary>
     /// Цена записи.
@@ -19,7 +19,7 @@ public record OrderWrapper
 /// <summary>
 /// Независимая модель стакана, значения которой инициализируются копированием из grpc-модели.
 /// </summary>
-public record OrderBookWrapper
+public record OrderBookModel
 {
     /// <summary>
     /// FIGI-идентификатор инструмента.
@@ -64,10 +64,10 @@ public record OrderBookWrapper
     /// <summary>
     /// Заявки на покупку.
     /// </summary>
-    public required IReadOnlyList<OrderWrapper> Bids { get; init; }
+    public required IReadOnlyList<OrderModel> Bids { get; init; }
 
     /// <summary>
     /// Заявки на продажу.
     /// </summary>
-    public required IReadOnlyList<OrderWrapper> Asks { get; init; }
+    public required IReadOnlyList<OrderModel> Asks { get; init; }
 }

@@ -1,14 +1,14 @@
-namespace Tinkoff.InvestApi.V1.Marketdata.Models.Wrapper.Request;
+namespace Tinkoff.InvestApi.V1.Marketdata.Models.Request;
 
 /// <summary>
-/// Запрос на подписку/отписку от стакана
+/// Запрос на подписку/отписку от сделок
 /// </summary>
-public class OrderBookSubscriptionRequest : SubscriptionRequestBase
+public class TradingStatusesSubscriptionRequest : SubscriptionRequestBase
 {
     private readonly List<MarketDataInstrument> _instruments;
     private readonly SubscriptionAction _action;
 
-    public OrderBookSubscriptionRequest(SubscriptionAction action, IEnumerable<MarketDataInstrument> instruments)
+    public TradingStatusesSubscriptionRequest(SubscriptionAction action, IEnumerable<MarketDataInstrument> instruments)
     {
         _action = action;
         _instruments = instruments.ToList();
@@ -22,20 +22,17 @@ public class OrderBookSubscriptionRequest : SubscriptionRequestBase
     {
         return new MarketDataRequest
         {
-            SubscribeOrderBookRequest = new SubscribeOrderBookRequest
+            SubscribeInfoRequest = new SubscribeInfoRequest
             {
                 SubscriptionAction = _action,
                 Instruments = { _instruments.Select(x =>
                 {
-                    return new OrderBookInstrument
+                    return new InfoInstrument
                     {
                         InstrumentId = x.Uid,
-                        Figi = x.Figi,
-                        Depth = x.Depth ?? -1,
-                        OrderBookType = x.OrderBook ?? OrderBookType.Unspecified
+                        Figi = x.Figi
                     };
-                })
-                }
+                }).ToList() }
             }
         };
     }

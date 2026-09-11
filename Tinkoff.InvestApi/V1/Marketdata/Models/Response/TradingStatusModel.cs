@@ -1,9 +1,9 @@
-namespace Tinkoff.InvestApi.V1.Marketdata.Models.Wrapper.Response;
+namespace Tinkoff.InvestApi.V1.Marketdata.Models.Response;
 
 /// <summary>
 /// Независимая модель торгового статуса, значения которой инициализируются копированием из grpc-модели.
 /// </summary>
-public record TradingStatusWrapper
+public record TradingStatusModel
 {
     /// <summary>
     /// FIGI-идентификатор инструмента.

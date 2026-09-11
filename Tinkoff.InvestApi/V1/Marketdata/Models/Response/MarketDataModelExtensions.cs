@@ -1,14 +1,14 @@
-namespace Tinkoff.InvestApi.V1.Marketdata.Models.Wrapper.Response;
+namespace Tinkoff.InvestApi.V1.Marketdata.Models.Response;
 
 /// <summary>
-/// Методы расширения для преобразования grpc-моделей рыночных данных в независимые wrapper-модели.
+/// Методы расширения для преобразования grpc-моделей рыночных данных в независимые модели.
 /// </summary>
-public static class MarketDataWrapperExtensions
+public static class MarketDataModelExtensions
 {
     /// <summary>
-    /// Преобразует grpc-модель свечи в независимую модель <see cref="CandleWrapper"/>.
+    /// Преобразует grpc-модель свечи в независимую модель <see cref="CandleModel"/>.
     /// </summary>
-    public static CandleWrapper ToWrapper(this Candle candle, bool isHistorical) => new()
+    public static CandleModel ToWrapper(this Candle candle, bool isHistorical) => new()
     {
         Figi = candle.Figi,
         Ticker = candle.Ticker,
@@ -29,9 +29,9 @@ public static class MarketDataWrapperExtensions
     };
 
     /// <summary>
-    /// Преобразует grpc-модель сделки в независимую модель <see cref="TradeWrapper"/>.
+    /// Преобразует grpc-модель сделки в независимую модель <see cref="TradeModel"/>.
     /// </summary>
-    public static TradeWrapper ToWrapper(this Trade trade) => new()
+    public static TradeModel ToWrapper(this Trade trade) => new()
     {
         Figi = trade.Figi,
         Ticker = trade.Ticker,
@@ -45,9 +45,9 @@ public static class MarketDataWrapperExtensions
     };
 
     /// <summary>
-    /// Преобразует grpc-модель стакана в независимую модель <see cref="OrderBookWrapper"/>.
+    /// Преобразует grpc-модель стакана в независимую модель <see cref="OrderBookModel"/>.
     /// </summary>
-    public static OrderBookWrapper ToWrapper(this OrderBook orderBook) => new()
+    public static OrderBookModel ToWrapper(this OrderBook orderBook) => new()
     {
         Figi = orderBook.Figi,
         Ticker = orderBook.Ticker,
@@ -62,18 +62,18 @@ public static class MarketDataWrapperExtensions
     };
 
     /// <summary>
-    /// Преобразует grpc-модель записи стакана в независимую модель <see cref="OrderWrapper"/>.
+    /// Преобразует grpc-модель записи стакана в независимую модель <see cref="OrderModel"/>.
     /// </summary>
-    public static OrderWrapper ToWrapper(this Order order) => new()
+    public static OrderModel ToWrapper(this Order order) => new()
     {
         Price = order.Price,
         Quantity = order.Quantity,
     };
 
     /// <summary>
-    /// Преобразует grpc-модель торгового статуса в независимую модель <see cref="TradingStatusWrapper"/>.
+    /// Преобразует grpc-модель торгового статуса в независимую модель <see cref="TradingStatusModel"/>.
     /// </summary>
-    public static TradingStatusWrapper ToWrapper(this TradingStatus tradingStatus) => new()
+    public static TradingStatusModel ToWrapper(this TradingStatus tradingStatus) => new()
     {
         Figi = tradingStatus.Figi,
         Ticker = tradingStatus.Ticker,
@@ -86,9 +86,9 @@ public static class MarketDataWrapperExtensions
     };
 
     /// <summary>
-    /// Преобразует grpc-модель последней цены в независимую модель <see cref="LastPriceWrapper"/>.
+    /// Преобразует grpc-модель последней цены в независимую модель <see cref="LastPriceModel"/>.
     /// </summary>
-    public static LastPriceWrapper ToWrapper(this LastPrice lastPrice) => new()
+    public static LastPriceModel ToWrapper(this LastPrice lastPrice) => new()
     {
         Figi = lastPrice.Figi,
         Ticker = lastPrice.Ticker,
@@ -100,9 +100,9 @@ public static class MarketDataWrapperExtensions
     };
 
     /// <summary>
-    /// Преобразует grpc-модель открытого интереса в независимую модель <see cref="OpenInterestWrapper"/>.
+    /// Преобразует grpc-модель открытого интереса в независимую модель <see cref="OpenInterestModel"/>.
     /// </summary>
-    public static OpenInterestWrapper ToWrapper(this OpenInterest openInterest) => new()
+    public static OpenInterestModel ToWrapper(this OpenInterest openInterest) => new()
     {
         Ticker = openInterest.Ticker,
         ClassCode = openInterest.ClassCode,
