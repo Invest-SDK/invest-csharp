@@ -3,11 +3,11 @@ namespace Tinkoff.InvestApi.V1.Marketdata.Models.Request;
 /// <summary>
 /// Запрос на подписку/отписку от свечей
 /// </summary>
-public class CandleSubscriptionRequest : SubscriptionRequestBase
+public class CandleSubscriptionRequest : ISubscriptionRequestBase
 {
     private readonly List<MarketDataInstrument> _instruments;
     private readonly SubscriptionAction _action;
-    public DateTime? LastInteractionTime {get; set;}
+    public DateTimeOffset? LastInteractionTime {get; set;}
 
     public CandleSubscriptionRequest(SubscriptionAction action, IEnumerable<MarketDataInstrument> instruments)
     {
@@ -15,11 +15,11 @@ public class CandleSubscriptionRequest : SubscriptionRequestBase
         _instruments = instruments.ToList();
     }
 
-    public override SubscriptionAction Action => _action;
+    public SubscriptionAction Action => _action;
 
     public IReadOnlyList<MarketDataInstrument> Instruments => _instruments.AsReadOnly();
 
-    public override MarketDataRequest ToMarketDataRequest()
+    public MarketDataRequest ToMarketDataRequest()
     {
         return new MarketDataRequest
         {

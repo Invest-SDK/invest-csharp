@@ -15,8 +15,8 @@ namespace Tinkoff.InvestApi.V1.Marketdata;
 public class MarketDataStreamWrapper
 {
     private readonly ILogger<MarketDataStreamWrapper>? _logger;
-    private readonly ConcurrentQueue<SubscriptionRequestBase> _subscriptionRequests = new();
-    private readonly ConcurrentDictionary<string, SubscriptionRequestBase> _activeSubscriptions = new();
+    private readonly ConcurrentQueue<ISubscriptionRequestBase> _subscriptionRequests = new();
+    private readonly ConcurrentDictionary<string, ISubscriptionRequestBase> _activeSubscriptions = new();
     private readonly ConcurrentDictionary<PendingSubscriptionKey, TaskCompletionSource<MarketDataSubscriptionResult>> _pendingSubscriptions = new();
     private readonly ResilenceDuplexStreamWrapper<MarketDataStreamService.MarketDataStreamServiceClient, MarketDataRequest, MarketDataResponse> _streamWrapper;
     private readonly Func<MarketDataResponse, Task>? _responseHandler;
@@ -191,11 +191,11 @@ public class MarketDataStreamWrapper
         return _pendingSubscriptions.Count;
     }
 
-    public ConcurrentDictionary<string, SubscriptionRequestBase> GetActiveSubscriptions => _activeSubscriptions;
+    public ConcurrentDictionary<string, ISubscriptionRequestBase> GetActiveSubscriptions => _activeSubscriptions;
 
     public Guid Guid => _streamWrapper.StreamGuid;
 
-    private async Task AddSubscriptionAsync(SubscriptionRequestBase request, CancellationToken cancellationToken)
+    private async Task AddSubscriptionAsync(ISubscriptionRequestBase request, CancellationToken cancellationToken)
     {
         _subscriptionRequests.Enqueue(request);
 
@@ -233,7 +233,7 @@ public class MarketDataStreamWrapper
         }
     }
 
-    private async Task RemoveSubscriptionAsync(SubscriptionRequestBase request, CancellationToken cancellationToken)
+    private async Task RemoveSubscriptionAsync(ISubscriptionRequestBase request, CancellationToken cancellationToken)
     {
         _subscriptionRequests.Enqueue(request);
 
@@ -339,7 +339,7 @@ public class MarketDataStreamWrapper
             if (sub != null)
             {
                 var candleSub = (CandleSubscriptionRequest) sub;
-                candleSub.LastInteractionTime = DateTime.UtcNow;
+                candleSub.LastInteractionTime = DateTimeOffset.UtcNow;
                 _activeSubscriptions.AddOrUpdate(key, candleSub, (k, v) => candleSub);
             }
         }
@@ -356,7 +356,7 @@ public class MarketDataStreamWrapper
         return $"{responseType}:{instrument.Figi}:{instrument.Uid}";
     }
 
-    private static MarketDataResponseType GetResponseTypeFromRequest(SubscriptionRequestBase request)
+    private static MarketDataResponseType GetResponseTypeFromRequest(ISubscriptionRequestBase request)
     {
         return request switch
         {
@@ -370,7 +370,7 @@ public class MarketDataStreamWrapper
         };
     }
 
-    private static List<MarketDataInstrument> GetInstrumentsFromRequest(SubscriptionRequestBase request)
+    private static List<MarketDataInstrument> GetInstrumentsFromRequest(ISubscriptionRequestBase request)
     {
         return request switch
         {
@@ -384,7 +384,7 @@ public class MarketDataStreamWrapper
         };
     }
 
-    private static SubscriptionRequestBase CreateSubscriptionRequest(
+    private static ISubscriptionRequestBase CreateSubscriptionRequest(
         MarketDataResponseType responseType,
         MarketDataInstrument instrument,
         SubscriptionAction action)

@@ -3,7 +3,7 @@ namespace Tinkoff.InvestApi.V1.Marketdata.Models.Request;
 /// <summary>
 /// Запрос на подписку/отписку от сделок
 /// </summary>
-public class TradeSubscriptionRequest : SubscriptionRequestBase
+public class TradeSubscriptionRequest : ISubscriptionRequestBase
 {
     private readonly List<MarketDataInstrument> _instruments;
     private readonly SubscriptionAction _action;
@@ -14,11 +14,11 @@ public class TradeSubscriptionRequest : SubscriptionRequestBase
         _instruments = instruments.ToList();
     }
 
-    public override SubscriptionAction Action => _action;
+    public SubscriptionAction Action => _action;
 
     public IReadOnlyList<MarketDataInstrument> Instruments => _instruments.AsReadOnly();
 
-    public override MarketDataRequest ToMarketDataRequest()
+    public MarketDataRequest ToMarketDataRequest()
     {
         return new MarketDataRequest
         {

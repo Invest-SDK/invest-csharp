@@ -6,12 +6,17 @@ public static class TimestampExtensions
     
     public static DateTime? ToDateTimeOrNull(this Timestamp timestamp)
     {
-        return timestamp == null ? null : timestamp.ToDateTime();
+        return timestamp?.ToDateTime();
+    }
+
+    public static DateTimeOffset? ToDateTimeOffsetOrNull(this Timestamp timestamp)
+    {
+        return timestamp?.ToDateTimeOffset();
     }
 
     public static Timestamp? ToTimestampOrNull(this DateTime? dateTime)
     {
-        return dateTime == null ? null : dateTime.Value.ToTimestamp();
+        return dateTime?.ToTimestamp();
     }
 
     public static Timestamp ToTimestamp(this DateTime dateTime, DateTimeKind kind = DateTimeKind.Utc)

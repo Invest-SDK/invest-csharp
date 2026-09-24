@@ -333,6 +333,6 @@ public class ResilenceDuplexStreamWrapperTests : IAsyncLifetime
 
         Func<Task> act = () => wrapper.CallAsync(request);
 
-        await act.Should().NotThrowAsync<TimeoutException>("После запроса должно быть автомаатически создано подключение");
+        await act.Should().NotThrowAsync<TimeoutException>("После запроса должно быть автоматически создано подключение");
     }
 }

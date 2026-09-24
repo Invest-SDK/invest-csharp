@@ -21,8 +21,8 @@ public static class MarketDataModelExtensions
         Volume = candle.Volume,
         VolumeBuy = candle.VolumeBuy,
         VolumeSell = candle.VolumeSell,
-        Time = TimestampExtensions.ToDateTimeOrNull(candle.Time),
-        LastTradeTime = TimestampExtensions.ToDateTimeOrNull(candle.LastTradeTs),
+        Time = TimestampExtensions.ToDateTimeOffsetOrNull(candle.Time),
+        LastTradeTime = TimestampExtensions.ToDateTimeOffsetOrNull(candle.LastTradeTs),
         InstrumentUid = candle.InstrumentUid,
         CandleSourceType = candle.CandleSourceType,
         IsHistorical = isHistorical,
@@ -39,7 +39,7 @@ public static class MarketDataModelExtensions
         Direction = trade.Direction,
         Price = trade.Price,
         Quantity = trade.Quantity,
-        Time = TimestampExtensions.ToDateTimeOrNull(trade.Time),
+        Time = TimestampExtensions.ToDateTimeOffsetOrNull(trade.Time),
         InstrumentUid = trade.InstrumentUid,
         TradeSource = trade.TradeSource,
     };
@@ -54,7 +54,7 @@ public static class MarketDataModelExtensions
         ClassCode = orderBook.ClassCode,
         Depth = orderBook.Depth,
         IsConsistent = orderBook.IsConsistent,
-        Time = TimestampExtensions.ToDateTimeOrNull(orderBook.Time),
+        Time = TimestampExtensions.ToDateTimeOffsetOrNull(orderBook.Time),
         InstrumentUid = orderBook.InstrumentUid,
         OrderBookType = orderBook.OrderBookType,
         Bids = orderBook.Bids.Select(b => b.ToModel()).ToList(),
@@ -81,7 +81,7 @@ public static class MarketDataModelExtensions
         TradingStatus = tradingStatus.TradingStatus_,
         LimitOrderAvailableFlag = tradingStatus.LimitOrderAvailableFlag,
         MarketOrderAvailableFlag = tradingStatus.MarketOrderAvailableFlag,
-        Time = TimestampExtensions.ToDateTimeOrNull(tradingStatus.Time),
+        Time = TimestampExtensions.ToDateTimeOffsetOrNull(tradingStatus.Time),
         InstrumentUid = tradingStatus.InstrumentUid,
     };
 
@@ -94,7 +94,7 @@ public static class MarketDataModelExtensions
         Ticker = lastPrice.Ticker,
         ClassCode = lastPrice.ClassCode,
         Price = lastPrice.Price,
-        Time = TimestampExtensions.ToDateTimeOrNull(lastPrice.Time),
+        Time = TimestampExtensions.ToDateTimeOffsetOrNull(lastPrice.Time),
         InstrumentUid = lastPrice.InstrumentUid,
         Type = lastPrice.LastPriceType,
     };
