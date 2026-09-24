@@ -26,4 +26,14 @@ public static class TimestampExtensions
             : dateTime.ToUniversalTime();
         return Timestamp.FromDateTime(dt);
     }
+
+    public static Timestamp? ToTimestampOrNull(this DateTimeOffset? dateTime)
+    {
+        return dateTime?.ToTimestamp();
+    }
+
+    public static Timestamp ToTimestamp(this DateTimeOffset dateTime)
+    {
+        return Timestamp.FromDateTimeOffset(dateTime);
+    }
 }

@@ -66,7 +66,7 @@ public class ResilenceDuplexStreamWrapper<TClient, TRequest, TResponse>(
                 return;
             }
 
-            await StartBackgroundConnectionAsync(cancellationToken);
+            StartBackgroundConnection(cancellationToken);
         }
         finally
         {
@@ -163,7 +163,7 @@ public class ResilenceDuplexStreamWrapper<TClient, TRequest, TResponse>(
         }
     }
 
-    private async Task StartBackgroundConnectionAsync(CancellationToken cancellationToken)
+    private void StartBackgroundConnection(CancellationToken cancellationToken)
     {
         _isConnecting = true;
         _disconnectCts = new CancellationTokenSource();

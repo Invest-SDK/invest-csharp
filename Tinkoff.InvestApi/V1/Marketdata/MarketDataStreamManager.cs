@@ -423,7 +423,7 @@ public class MarketDataStreamManager
         }
     }
 
-    private async Task RecoverCandleSubscription(MarketDataInstrument instrument, DateTime? lastInteractionTime, Guid guid)
+    private async Task RecoverCandleSubscription(MarketDataInstrument instrument, DateTimeOffset? lastInteractionTime, Guid guid)
     {
         if (lastInteractionTime == null)
         {
