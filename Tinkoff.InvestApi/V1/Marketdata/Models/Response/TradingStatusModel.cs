@@ -38,7 +38,7 @@ public record TradingStatusModel
     /// <summary>
     /// Время изменения торгового статуса по UTC.
     /// </summary>
-    public required DateTime? Time { get; init; }
+    public required DateTimeOffset? Time { get; init; }
 
     /// <summary>
     /// UID инструмента.

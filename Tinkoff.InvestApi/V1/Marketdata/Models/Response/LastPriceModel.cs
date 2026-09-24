@@ -28,7 +28,7 @@ public record LastPriceModel
     /// <summary>
     /// Время последней цены по UTC.
     /// </summary>
-    public required DateTime? Time { get; init; }
+    public required DateTimeOffset? Time { get; init; }
 
     /// <summary>
     /// UID инструмента.

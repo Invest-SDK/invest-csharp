@@ -38,7 +38,7 @@ public record TradeModel
     /// <summary>
     /// Время сделки по UTC.
     /// </summary>
-    public required DateTime? Time { get; init; }
+    public required DateTimeOffset? Time { get; init; }
 
     /// <summary>
     /// UID инструмента.

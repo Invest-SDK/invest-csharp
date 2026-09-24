@@ -49,7 +49,7 @@ public record OrderBookModel
     /// <summary>
     /// Время последнего обновления стакана по UTC.
     /// </summary>
-    public required DateTime? Time { get; init; }
+    public required DateTimeOffset? Time { get; init; }
 
     /// <summary>
     /// UID инструмента.

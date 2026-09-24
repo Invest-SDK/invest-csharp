@@ -7,9 +7,9 @@ public static class MarketDataUtils
 {
     public static MarketDataSubscriptionResult? GetSubscriptionResultFromResponse(MarketDataResponse response)
     {
-        if (response.SubscribeCandlesResponse != null && response.SubscribeCandlesResponse.IsInitialized())
+        return GetSubscriptionResponseType(response) switch
         {
-            return new MarketDataSubscriptionResult(
+            MarketDataResponseType.CANDLE => new MarketDataSubscriptionResult(
                 GetActionFromResponse(response),
                 MarketDataResponseType.CANDLE,
                 response.SubscribeCandlesResponse.CandlesSubscriptions.ToDictionary(
@@ -20,11 +20,8 @@ public static class MarketDataUtils
                         interval: x.Interval
                     ),
                     x => GetSubscriptionStatusFromResponse(x.SubscriptionStatus)
-                ));
-        }
-        else if (response.SubscribeLastPriceResponse != null && response.SubscribeLastPriceResponse.IsInitialized())
-        {
-            return new MarketDataSubscriptionResult(
+                )),
+            MarketDataResponseType.LAST_PRICE => new MarketDataSubscriptionResult(
                 GetActionFromResponse(response),
                 MarketDataResponseType.LAST_PRICE,
                 response.SubscribeLastPriceResponse.LastPriceSubscriptions.ToDictionary(
@@ -34,11 +31,8 @@ public static class MarketDataUtils
                         tickerClassCode: x.Ticker + "_" + x.ClassCode
                     ),
                     x => GetSubscriptionStatusFromResponse(x.SubscriptionStatus)
-                ));
-        }
-        else if (response.SubscribeOrderBookResponse != null && response.SubscribeOrderBookResponse.IsInitialized())
-        {
-            return new MarketDataSubscriptionResult(
+                )),
+            MarketDataResponseType.ORDER_BOOK => new MarketDataSubscriptionResult(
                 GetActionFromResponse(response),
                 MarketDataResponseType.ORDER_BOOK,
                 response.SubscribeOrderBookResponse.OrderBookSubscriptions.ToDictionary(
@@ -50,11 +44,8 @@ public static class MarketDataUtils
                         orderBook: x.OrderBookType
                     ),
                     x => GetSubscriptionStatusFromResponse(x.SubscriptionStatus)
-                ));
-        }
-        else if (response.SubscribeTradesResponse != null && response.SubscribeTradesResponse.IsInitialized())
-        {
-            return new MarketDataSubscriptionResult(
+                )),
+            MarketDataResponseType.TRADE => new MarketDataSubscriptionResult(
                 GetActionFromResponse(response),
                 MarketDataResponseType.TRADE,
                 response.SubscribeTradesResponse.TradeSubscriptions.ToDictionary(
@@ -64,11 +55,8 @@ public static class MarketDataUtils
                         tickerClassCode: x.Ticker + "_" + x.ClassCode
                     ),
                     x => GetSubscriptionStatusFromResponse(x.SubscriptionStatus)
-                ));
-        }
-        else if (response.SubscribeInfoResponse != null && response.SubscribeInfoResponse.IsInitialized())
-        {
-            return new MarketDataSubscriptionResult(
+                )),
+            MarketDataResponseType.TRADING_STATUS => new MarketDataSubscriptionResult(
                 GetActionFromResponse(response),
                 MarketDataResponseType.TRADING_STATUS,
                 response.SubscribeInfoResponse.InfoSubscriptions.ToDictionary(
@@ -78,143 +66,84 @@ public static class MarketDataUtils
                         tickerClassCode: x.Ticker + "_" + x.ClassCode
                     ),
                     x => GetSubscriptionStatusFromResponse(x.SubscriptionStatus)
-                ));
-        }
-        return null;
+                )),
+            _ => null
+        };
+    }
+
+    private static MarketDataResponseType? GetSubscriptionResponseType(MarketDataResponse response)
+    {
+        return response switch
+        {
+            var resp when resp.SubscribeCandlesResponse != null && resp.SubscribeCandlesResponse.IsInitialized() => MarketDataResponseType.CANDLE,
+            var resp when resp.SubscribeLastPriceResponse != null && resp.SubscribeLastPriceResponse.IsInitialized() => MarketDataResponseType.LAST_PRICE,
+            var resp when resp.SubscribeOrderBookResponse != null && resp.SubscribeOrderBookResponse.IsInitialized() => MarketDataResponseType.ORDER_BOOK,
+            var resp when resp.SubscribeTradesResponse != null && resp.SubscribeTradesResponse.IsInitialized() => MarketDataResponseType.TRADE,
+            var resp when resp.SubscribeInfoResponse != null && resp.SubscribeInfoResponse.IsInitialized() => MarketDataResponseType.TRADING_STATUS,
+            _ => null
+        };
     }
 
     public static MarketDataAction GetActionFromResponse(MarketDataResponse response)
     {
-        if (response.SubscribeCandlesResponse != null && response.SubscribeCandlesResponse.IsInitialized())
+        return response switch
         {
-            return GetActionFromSubscriptionAction(response.SubscribeCandlesResponse.CandlesSubscriptions[0].SubscriptionAction);
-        }
-        else if (response.SubscribeLastPriceResponse != null && response.SubscribeLastPriceResponse.IsInitialized())
-        {
-            return GetActionFromSubscriptionAction(response.SubscribeLastPriceResponse.LastPriceSubscriptions[0].SubscriptionAction);
-        }
-        else if (response.SubscribeOrderBookResponse != null && response.SubscribeOrderBookResponse.IsInitialized())
-        {
-            return GetActionFromSubscriptionAction(response.SubscribeOrderBookResponse.OrderBookSubscriptions[0].SubscriptionAction);
-        }
-        else if (response.SubscribeTradesResponse != null && response.SubscribeTradesResponse.IsInitialized())
-        {
-            return GetActionFromSubscriptionAction(response.SubscribeTradesResponse.TradeSubscriptions[0].SubscriptionAction);
-        }
-        else if (response.SubscribeInfoResponse != null && response.SubscribeInfoResponse.IsInitialized())
-        {
-            return GetActionFromSubscriptionAction(response.SubscribeInfoResponse.InfoSubscriptions[0].SubscriptionAction);
-        }
-        return MarketDataAction.UNKNOWN;
+            var resp when resp.SubscribeCandlesResponse != null && resp.SubscribeCandlesResponse.IsInitialized() 
+                => GetActionFromSubscriptionAction(resp.SubscribeCandlesResponse.CandlesSubscriptions[0].SubscriptionAction),
+            var resp when resp.SubscribeLastPriceResponse != null && resp.SubscribeLastPriceResponse.IsInitialized() 
+                => GetActionFromSubscriptionAction(resp.SubscribeLastPriceResponse.LastPriceSubscriptions[0].SubscriptionAction),
+            var resp when resp.SubscribeOrderBookResponse != null && resp.SubscribeOrderBookResponse.IsInitialized() 
+                => GetActionFromSubscriptionAction(resp.SubscribeOrderBookResponse.OrderBookSubscriptions[0].SubscriptionAction),
+            var resp when resp.SubscribeTradesResponse != null && resp.SubscribeTradesResponse.IsInitialized() 
+                => GetActionFromSubscriptionAction(resp.SubscribeTradesResponse.TradeSubscriptions[0].SubscriptionAction),
+            var resp when resp.SubscribeInfoResponse != null && resp.SubscribeInfoResponse.IsInitialized() 
+                => GetActionFromSubscriptionAction(resp.SubscribeInfoResponse.InfoSubscriptions[0].SubscriptionAction),
+            _ => MarketDataAction.UNKNOWN
+        };
     }
 
-    public static MarketDataInstrument GetInstrumentsFromResponse(MarketDataResponse response)
+    public static MarketDataInstrument? GetInstrumentsFromResponse(MarketDataResponse response)
     {
-
-        if (response.Candle != null && response.Candle.IsInitialized())
+        return GetResponseType(response) switch
         {
-            return new MarketDataInstrument
-            (
-                figi: response.Candle.Figi,
-                uid: response.Candle.InstrumentUid,
-                tickerClassCode: response.Candle.Ticker + "_" + response.Candle.ClassCode,
-                interval: response.Candle.Interval
-            );
-        }
-        else if (response.Trade != null && response.Trade.IsInitialized())
-        {
-            return new MarketDataInstrument
-            (
-                figi: response.Trade.Figi,
-                uid: response.Trade.InstrumentUid,
-                tickerClassCode: response.Trade.Ticker + "_" + response.Trade.ClassCode
-            );
-        }
-        else if (response.Orderbook != null && response.Orderbook.IsInitialized())
-        {
-            return new MarketDataInstrument(
-                figi: response.Orderbook.Figi,
-                uid: response.Orderbook.InstrumentUid,
-                tickerClassCode: response.Orderbook.Ticker + "_" + response.Orderbook.ClassCode,
-                depth: response.Orderbook.Depth,
-                orderBook: response.Orderbook.OrderBookType
-            );
-        }
-        else if (response.LastPrice != null && response.LastPrice.IsInitialized())
-        {
-            return new MarketDataInstrument(
-                figi: response.LastPrice.Figi,
-                uid: response.LastPrice.InstrumentUid,
-                tickerClassCode: response.LastPrice.Ticker + "_" + response.LastPrice.ClassCode
-            );
-        }
-        else if (response.OpenInterest != null && response.OpenInterest.IsInitialized())
-        {
-            return new MarketDataInstrument(
-                uid: response.OpenInterest.InstrumentUid,
-                tickerClassCode: response.OpenInterest.Ticker + "_" + response.OpenInterest.ClassCode
-            );
-        }
-        else if (response.TradingStatus != null && response.TradingStatus.IsInitialized())
-        {
-            return new MarketDataInstrument(
-                figi: response.TradingStatus.Figi,
-                uid: response.TradingStatus.InstrumentUid,
-                tickerClassCode: response.TradingStatus.Ticker + "_" + response.TradingStatus.ClassCode
-            );
-        }
-        return null;
+            MarketDataResponseType.CANDLE => response.Candle.ToMarketDataInstrument(),
+            MarketDataResponseType.TRADE => response.Trade.ToMarketDataInstrument(),
+            MarketDataResponseType.ORDER_BOOK => response.Orderbook.ToMarketDataInstrument(),
+            MarketDataResponseType.LAST_PRICE => response.LastPrice.ToMarketDataInstrument(),
+            MarketDataResponseType.OPEN_INTEREST => response.OpenInterest.ToMarketDataInstrument(),
+            MarketDataResponseType.TRADING_STATUS => response.TradingStatus.ToMarketDataInstrument(),
+            _ => null
+        };
     }
 
     public static MarketDataResponseType? GetResponseType(MarketDataResponse response)
     {
-
-        if (response.Candle != null && response.Candle.IsInitialized())
+        return response switch
         {
-            return MarketDataResponseType.CANDLE;
-        }
-        else if (response.Trade != null && response.Trade.IsInitialized())
-        {
-            return MarketDataResponseType.TRADE;
-        }
-        else if (response.Orderbook != null && response.Orderbook.IsInitialized())
-        {
-            return MarketDataResponseType.ORDER_BOOK;
-        }
-        else if (response.LastPrice != null && response.LastPrice.IsInitialized())
-        {
-            return MarketDataResponseType.LAST_PRICE;
-        }
-        else if (response.OpenInterest != null && response.OpenInterest.IsInitialized())
-        {
-            return MarketDataResponseType.OPEN_INTEREST;
-        }
-        else if (response.TradingStatus != null && response.TradingStatus.IsInitialized())
-        {
-            return MarketDataResponseType.TRADING_STATUS;
-        }
-        return null;
+            var resp when resp.Candle != null && resp.Candle.IsInitialized() => MarketDataResponseType.CANDLE,
+            var resp when resp.Trade != null && resp.Trade.IsInitialized() => MarketDataResponseType.TRADE,
+            var resp when resp.Orderbook != null && resp.Orderbook.IsInitialized() => MarketDataResponseType.ORDER_BOOK,
+            var resp when resp.LastPrice != null && resp.LastPrice.IsInitialized() => MarketDataResponseType.LAST_PRICE,
+            var resp when resp.OpenInterest != null && resp.OpenInterest.IsInitialized() => MarketDataResponseType.OPEN_INTEREST,
+            var resp when resp.TradingStatus != null && resp.TradingStatus.IsInitialized() => MarketDataResponseType.TRADING_STATUS,
+            _ => null
+        };
     }
 
     private static MarketDataAction GetActionFromSubscriptionAction(SubscriptionAction subscriptionAction)
     {
-        if (subscriptionAction == SubscriptionAction.Subscribe)
+        return subscriptionAction switch
         {
-            return MarketDataAction.SUBSCRIBE;
-        }
-        else if (subscriptionAction == SubscriptionAction.Unsubscribe)
-        {
-            return MarketDataAction.UNSUBSCRIBE;
-        }
-        return MarketDataAction.UNKNOWN;
+            SubscriptionAction.Subscribe => MarketDataAction.SUBSCRIBE,
+            SubscriptionAction.Unsubscribe => MarketDataAction.UNSUBSCRIBE,
+            _ => MarketDataAction.UNKNOWN
+        };
     }
 
     private static MarketDataSubscriptionStatus GetSubscriptionStatusFromResponse(SubscriptionStatus subscriptionStatus)
     {
-        if (subscriptionStatus == SubscriptionStatus.Success)
-        {
-            return MarketDataSubscriptionStatus.OK;
-        }
-        return MarketDataSubscriptionStatus.ERROR;
+        return subscriptionStatus == SubscriptionStatus.Success
+            ? MarketDataSubscriptionStatus.OK
+            : MarketDataSubscriptionStatus.ERROR;
     }
 }

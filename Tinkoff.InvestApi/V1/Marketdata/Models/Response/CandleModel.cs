@@ -63,12 +63,12 @@ public record CandleModel
     /// <summary>
     /// Время начала интервала свечи по UTC.
     /// </summary>
-    public required DateTime? Time { get; init; }
+    public required DateTimeOffset? Time { get; init; }
 
     /// <summary>
     /// Время последней сделки, вошедшей в свечу, по UTC.
     /// </summary>
-    public required DateTime? LastTradeTime { get; init; }
+    public required DateTimeOffset? LastTradeTime { get; init; }
 
     /// <summary>
     /// UID инструмента.
