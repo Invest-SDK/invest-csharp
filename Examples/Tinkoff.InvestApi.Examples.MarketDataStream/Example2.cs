@@ -26,7 +26,7 @@ public class Example2(ILogger<Example2> logger, InvestApiClient investClient)
 
         var instruments = investClient.Instruments.Shares().Instruments
         .Where(x => x.ApiTradeAvailableFlag && x.TradingStatus == SecurityTradingStatus.NormalTrading)
-        .Select(x => new MarketDataInstrument(uid: x.Uid, interval: SubscriptionInterval.OneMinute))
+        .Select(x => new MarketDataInstrument(Uid: x.Uid, Interval: SubscriptionInterval.OneMinute))
         .ToList();
         Func<CandleModel, Task> onCandleHandler = (CandleModel candle) => 
         {

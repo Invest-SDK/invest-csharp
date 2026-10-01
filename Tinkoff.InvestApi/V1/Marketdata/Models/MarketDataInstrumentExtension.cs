@@ -7,10 +7,10 @@ public static class MarketDataInstrumentExtension
     {
         return new MarketDataInstrument
         (
-            figi: candle.Figi,
-            uid: candle.InstrumentUid,
-            tickerClassCode: candle.Ticker + "_" + candle.ClassCode,
-            interval: candle.Interval
+            Figi: candle.Figi,
+            Uid: candle.InstrumentUid,
+            TickerClassCode: candle.Ticker + "_" + candle.ClassCode,
+            Interval: candle.Interval
         );
     }
 
@@ -18,9 +18,9 @@ public static class MarketDataInstrumentExtension
     {
         return new MarketDataInstrument
         (
-            figi: trade.Figi,
-            uid: trade.InstrumentUid,
-            tickerClassCode: trade.Ticker + "_" + trade.ClassCode
+            Figi: trade.Figi,
+            Uid: trade.InstrumentUid,
+            TickerClassCode: trade.Ticker + "_" + trade.ClassCode
         );
     }
 
@@ -28,11 +28,11 @@ public static class MarketDataInstrumentExtension
     {
         return new MarketDataInstrument
         (
-            figi: orderbook.Figi,
-            uid: orderbook.InstrumentUid,
-            tickerClassCode: orderbook.Ticker + "_" + orderbook.ClassCode,
-            depth: orderbook.Depth,
-            orderBook: orderbook.OrderBookType
+            Figi: orderbook.Figi,
+            Uid: orderbook.InstrumentUid,
+            TickerClassCode: orderbook.Ticker + "_" + orderbook.ClassCode,
+            Depth: orderbook.Depth,
+            OrderBook: orderbook.OrderBookType
         );
     }
 
@@ -40,9 +40,9 @@ public static class MarketDataInstrumentExtension
     {
         return new MarketDataInstrument
         (
-            figi: lastPrice.Figi,
-            uid: lastPrice.InstrumentUid,
-            tickerClassCode: lastPrice.Ticker + "_" + lastPrice.ClassCode
+            Figi: lastPrice.Figi,
+            Uid: lastPrice.InstrumentUid,
+            TickerClassCode: lastPrice.Ticker + "_" + lastPrice.ClassCode
         );
     }
 
@@ -50,8 +50,8 @@ public static class MarketDataInstrumentExtension
     {
         return new MarketDataInstrument
         (
-            uid: openInterest.InstrumentUid,
-            tickerClassCode: openInterest.Ticker + "_" + openInterest.ClassCode
+            Uid: openInterest.InstrumentUid,
+            TickerClassCode: openInterest.Ticker + "_" + openInterest.ClassCode
         );
     }
 
@@ -59,9 +59,9 @@ public static class MarketDataInstrumentExtension
     {
         return new MarketDataInstrument
         (
-            figi: tradingStatus.Figi,
-            uid: tradingStatus.InstrumentUid,
-            tickerClassCode: tradingStatus.Ticker + "_" + tradingStatus.ClassCode
+            Figi: tradingStatus.Figi,
+            Uid: tradingStatus.InstrumentUid,
+            TickerClassCode: tradingStatus.Ticker + "_" + tradingStatus.ClassCode
         );
     }
 }

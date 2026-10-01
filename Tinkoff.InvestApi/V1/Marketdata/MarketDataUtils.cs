@@ -14,10 +14,10 @@ public static class MarketDataUtils
                 MarketDataResponseType.CANDLE,
                 response.SubscribeCandlesResponse.CandlesSubscriptions.ToDictionary(
                     x => new MarketDataInstrument(
-                        figi: x.Figi,
-                        uid: x.InstrumentUid,
-                        tickerClassCode: x.Ticker + "_" + x.ClassCode,
-                        interval: x.Interval
+                    Figi: x.Figi,
+                        Uid: x.InstrumentUid,
+                        TickerClassCode: x.Ticker + "_" + x.ClassCode,
+                        Interval: x.Interval
                     ),
                     x => GetSubscriptionStatusFromResponse(x.SubscriptionStatus)
                 )),
@@ -26,9 +26,9 @@ public static class MarketDataUtils
                 MarketDataResponseType.LAST_PRICE,
                 response.SubscribeLastPriceResponse.LastPriceSubscriptions.ToDictionary(
                     x => new MarketDataInstrument(
-                        figi: x.Figi,
-                        uid: x.InstrumentUid,
-                        tickerClassCode: x.Ticker + "_" + x.ClassCode
+                        Figi: x.Figi,
+                        Uid: x.InstrumentUid,
+                        TickerClassCode: x.Ticker + "_" + x.ClassCode
                     ),
                     x => GetSubscriptionStatusFromResponse(x.SubscriptionStatus)
                 )),
@@ -37,11 +37,11 @@ public static class MarketDataUtils
                 MarketDataResponseType.ORDER_BOOK,
                 response.SubscribeOrderBookResponse.OrderBookSubscriptions.ToDictionary(
                     x => new MarketDataInstrument(
-                        figi: x.Figi,
-                        uid: x.InstrumentUid,
-                        tickerClassCode: x.Ticker + "_" + x.ClassCode,
-                        depth: x.Depth,
-                        orderBook: x.OrderBookType
+                        Figi: x.Figi,
+                        Uid: x.InstrumentUid,
+                        TickerClassCode: x.Ticker + "_" + x.ClassCode,
+                        Depth: x.Depth,
+                        OrderBook: x.OrderBookType
                     ),
                     x => GetSubscriptionStatusFromResponse(x.SubscriptionStatus)
                 )),
@@ -50,9 +50,9 @@ public static class MarketDataUtils
                 MarketDataResponseType.TRADE,
                 response.SubscribeTradesResponse.TradeSubscriptions.ToDictionary(
                     x => new MarketDataInstrument(
-                        figi: x.Figi,
-                        uid: x.InstrumentUid,
-                        tickerClassCode: x.Ticker + "_" + x.ClassCode
+                        Figi: x.Figi,
+                        Uid: x.InstrumentUid,
+                        TickerClassCode: x.Ticker + "_" + x.ClassCode
                     ),
                     x => GetSubscriptionStatusFromResponse(x.SubscriptionStatus)
                 )),
@@ -61,9 +61,9 @@ public static class MarketDataUtils
                 MarketDataResponseType.TRADING_STATUS,
                 response.SubscribeInfoResponse.InfoSubscriptions.ToDictionary(
                     x => new MarketDataInstrument(
-                        figi: x.Figi,
-                        uid: x.InstrumentUid,
-                        tickerClassCode: x.Ticker + "_" + x.ClassCode
+                        Figi: x.Figi,
+                        Uid: x.InstrumentUid,
+                        TickerClassCode: x.Ticker + "_" + x.ClassCode
                     ),
                     x => GetSubscriptionStatusFromResponse(x.SubscriptionStatus)
                 )),

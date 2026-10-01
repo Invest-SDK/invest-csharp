@@ -1,17 +1,8 @@
 namespace Tinkoff.InvestApi.V1.Marketdata.Models;
 
-public class MarketDataSubscriptionResult
+public record MarketDataSubscriptionResult
 (
-    MarketDataAction action = MarketDataAction.UNKNOWN,
-    MarketDataResponseType responseType = MarketDataResponseType.OTHER,
-    Dictionary<MarketDataInstrument, MarketDataSubscriptionStatus>? subsciptionStatusDictionary = null
-)
-{
-    private readonly MarketDataAction action = action;
-    private readonly MarketDataResponseType responseType = responseType;
-    private readonly Dictionary<MarketDataInstrument, MarketDataSubscriptionStatus> subsciptionStatusDictionary = subsciptionStatusDictionary ?? [];
-
-    public MarketDataAction Action => action;
-    public MarketDataResponseType ResponseType => responseType;
-    public Dictionary<MarketDataInstrument, MarketDataSubscriptionStatus> SubsciptionStatusDictionary => subsciptionStatusDictionary;
-}
+    MarketDataAction Action = MarketDataAction.UNKNOWN,
+    MarketDataResponseType ResponseType = MarketDataResponseType.OTHER,
+    Dictionary<MarketDataInstrument, MarketDataSubscriptionStatus>? SubsciptionStatusDictionary = null
+);

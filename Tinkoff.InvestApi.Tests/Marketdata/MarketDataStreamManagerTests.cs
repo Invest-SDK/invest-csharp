@@ -339,12 +339,12 @@ public class MarketDataStreamManagerTests
         int? depth = null,
         OrderBookType? orderBook = null)
         => new(
-            figi: figi,
-            tickerClassCode: tickerClassCode,
-            uid: uid,
-            interval: interval,
-            depth: depth,
-            orderBook: orderBook);
+            Figi: figi,
+            TickerClassCode: tickerClassCode,
+            Uid: uid,
+            Interval: interval,
+            Depth: depth,
+            OrderBook: orderBook);
 
     private static async Task WaitUntilAsync(Func<bool> condition, int timeoutMs = 5000, int pollMs = 50, Action? log = null)
     {

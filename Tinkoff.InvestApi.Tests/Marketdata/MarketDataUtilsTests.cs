@@ -50,32 +50,32 @@ public class MarketDataUtilsTests
         yield return new object[]
         {
             new MarketDataResponse { Candle = new Candle { Figi = Figi, InstrumentUid = Uid, Ticker = Ticker, ClassCode = ClassCode, Interval = SubscriptionInterval.OneMinute } },
-            new MarketDataInstrument(figi: Figi, uid: Uid, tickerClassCode: $"{Ticker}_{ClassCode}", interval: SubscriptionInterval.OneMinute)
+            new MarketDataInstrument(Figi: Figi, Uid: Uid, TickerClassCode: $"{Ticker}_{ClassCode}", Interval: SubscriptionInterval.OneMinute)
         };
         yield return new object[]
         {
             new MarketDataResponse { Trade = new Trade { Figi = Figi, InstrumentUid = Uid, Ticker = Ticker, ClassCode = ClassCode } },
-            new MarketDataInstrument(figi: Figi, uid: Uid, tickerClassCode: $"{Ticker}_{ClassCode}")
+            new MarketDataInstrument(Figi: Figi, Uid: Uid, TickerClassCode: $"{Ticker}_{ClassCode}")
         };
         yield return new object[]
         {
             new MarketDataResponse { Orderbook = new OrderBook { Figi = Figi, InstrumentUid = Uid, Ticker = Ticker, ClassCode = ClassCode, Depth = 10, OrderBookType = OrderBookType.Exchange } },
-            new MarketDataInstrument(figi: Figi, uid: Uid, tickerClassCode: $"{Ticker}_{ClassCode}", depth: 10, orderBook: OrderBookType.Exchange)
+            new MarketDataInstrument(Figi: Figi, Uid: Uid, TickerClassCode: $"{Ticker}_{ClassCode}", Depth: 10, OrderBook: OrderBookType.Exchange)
         };
         yield return new object[]
         {
             new MarketDataResponse { LastPrice = new LastPrice { Figi = Figi, InstrumentUid = Uid, Ticker = Ticker, ClassCode = ClassCode } },
-            new MarketDataInstrument(figi: Figi, uid: Uid, tickerClassCode: $"{Ticker}_{ClassCode}")
+            new MarketDataInstrument(Figi: Figi, Uid: Uid, TickerClassCode: $"{Ticker}_{ClassCode}")
         };
         yield return new object[]
         {
             new MarketDataResponse { OpenInterest = new OpenInterest { InstrumentUid = Uid, Ticker = Ticker, ClassCode = ClassCode } },
-            new MarketDataInstrument(uid: Uid, tickerClassCode: $"{Ticker}_{ClassCode}")
+            new MarketDataInstrument(Uid: Uid, TickerClassCode: $"{Ticker}_{ClassCode}")
         };
         yield return new object[]
         {
             new MarketDataResponse { TradingStatus = new TradingStatus { Figi = Figi, InstrumentUid = Uid, Ticker = Ticker, ClassCode = ClassCode } },
-            new MarketDataInstrument(figi: Figi, uid: Uid, tickerClassCode: $"{Ticker}_{ClassCode}")
+            new MarketDataInstrument(Figi: Figi, Uid: Uid, TickerClassCode: $"{Ticker}_{ClassCode}")
         };
         yield return new object[] { new MarketDataResponse(), null };
     }

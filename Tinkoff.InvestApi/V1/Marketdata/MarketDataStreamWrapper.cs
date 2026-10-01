@@ -334,11 +334,15 @@ public class MarketDataStreamWrapper
 
         if (response.Candle != null && response.Candle.IsInitialized())
         {
-            var key = GetSubscriptionKey(MarketDataResponseType.CANDLE, new MarketDataInstrument(figi: response.Candle.Figi, uid: response.Candle.InstrumentUid, interval: response.Candle.Interval));
+            var key = GetSubscriptionKey(MarketDataResponseType.CANDLE, new MarketDataInstrument(
+                Figi: response.Candle.Figi,
+                Uid: response.Candle.InstrumentUid,
+                Interval: response.Candle.Interval
+            ));
             _activeSubscriptions.TryGetValue(key, out var sub);
             if (sub != null)
             {
-                var candleSub = (CandleSubscriptionRequest) sub;
+                var candleSub = (CandleSubscriptionRequest)sub;
                 candleSub.LastInteractionTime = DateTimeOffset.UtcNow;
                 _activeSubscriptions.AddOrUpdate(key, candleSub, (k, v) => candleSub);
             }
