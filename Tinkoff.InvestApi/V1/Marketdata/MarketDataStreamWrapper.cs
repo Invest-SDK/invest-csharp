@@ -14,9 +14,18 @@ namespace Tinkoff.InvestApi.V1.Marketdata;
 /// </summary>
 public class MarketDataStreamWrapper
 {
+    private static readonly Type[] validTypes =
+        [
+            typeof(CandleSubscriptionRequest),
+            typeof(OrderBookSubscriptionRequest),
+            typeof(TradeSubscriptionRequest),
+            typeof(LastPriceSubscriptionRequest),
+            typeof(OpenInterestSubscriptionRequest),
+            typeof(TradingStatusesSubscriptionRequest)
+        ];
     private readonly ILogger<MarketDataStreamWrapper>? _logger;
-    private readonly ConcurrentQueue<ISubscriptionRequestBase> _subscriptionRequests = new();
-    private readonly ConcurrentDictionary<string, ISubscriptionRequestBase> _activeSubscriptions = new();
+    private readonly ConcurrentQueue<SubscriptionRequestBase> _subscriptionRequests = new();
+    private readonly ConcurrentDictionary<string, SubscriptionRequestBase> _activeSubscriptions = new();
     private readonly ConcurrentDictionary<PendingSubscriptionKey, TaskCompletionSource<MarketDataSubscriptionResult>> _pendingSubscriptions = new();
     private readonly ResilenceDuplexStreamWrapper<MarketDataStreamService.MarketDataStreamServiceClient, MarketDataRequest, MarketDataResponse> _streamWrapper;
     private readonly Func<MarketDataResponse, Task>? _responseHandler;
@@ -191,11 +200,11 @@ public class MarketDataStreamWrapper
         return _pendingSubscriptions.Count;
     }
 
-    public ConcurrentDictionary<string, ISubscriptionRequestBase> GetActiveSubscriptions => _activeSubscriptions;
+    public ConcurrentDictionary<string, SubscriptionRequestBase> GetActiveSubscriptions => _activeSubscriptions;
 
     public Guid Guid => _streamWrapper.StreamGuid;
 
-    private async Task AddSubscriptionAsync(ISubscriptionRequestBase request, CancellationToken cancellationToken)
+    private async Task AddSubscriptionAsync(SubscriptionRequestBase request, CancellationToken cancellationToken)
     {
         _subscriptionRequests.Enqueue(request);
 
@@ -233,7 +242,7 @@ public class MarketDataStreamWrapper
         }
     }
 
-    private async Task RemoveSubscriptionAsync(ISubscriptionRequestBase request, CancellationToken cancellationToken)
+    private async Task RemoveSubscriptionAsync(SubscriptionRequestBase request, CancellationToken cancellationToken)
     {
         _subscriptionRequests.Enqueue(request);
 
@@ -360,7 +369,7 @@ public class MarketDataStreamWrapper
         return $"{responseType}:{instrument.Figi}:{instrument.Uid}";
     }
 
-    private static MarketDataResponseType GetResponseTypeFromRequest(ISubscriptionRequestBase request)
+    private static MarketDataResponseType GetResponseTypeFromRequest(SubscriptionRequestBase request)
     {
         return request switch
         {
@@ -374,21 +383,16 @@ public class MarketDataStreamWrapper
         };
     }
 
-    private static List<MarketDataInstrument> GetInstrumentsFromRequest(ISubscriptionRequestBase request)
+    private static List<MarketDataInstrument> GetInstrumentsFromRequest(SubscriptionRequestBase request)
     {
-        return request switch
+        if (validTypes.Contains(request.GetType()))
         {
-            CandleSubscriptionRequest r => [.. r.Instruments],
-            OrderBookSubscriptionRequest r => [.. r.Instruments],
-            TradeSubscriptionRequest r => [.. r.Instruments],
-            LastPriceSubscriptionRequest r => [.. r.Instruments],
-            OpenInterestSubscriptionRequest r => [.. r.Instruments],
-            TradingStatusesSubscriptionRequest r => [.. r.Instruments],
-            _ => throw new ArgumentOutOfRangeException(nameof(request), request.GetType(), "Неизвестный тип запроса подписки")
-        };
+            return [.. request.Instruments];
+        }
+        throw new ArgumentOutOfRangeException(nameof(request), request.GetType(), "Неизвестный тип запроса подписки");
     }
 
-    private static ISubscriptionRequestBase CreateSubscriptionRequest(
+    private static SubscriptionRequestBase CreateSubscriptionRequest(
         MarketDataResponseType responseType,
         MarketDataInstrument instrument,
         SubscriptionAction action)
