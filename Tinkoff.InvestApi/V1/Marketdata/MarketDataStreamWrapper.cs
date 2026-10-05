@@ -28,14 +28,14 @@ public class MarketDataStreamWrapper
     private readonly ConcurrentDictionary<string, SubscriptionRequestBase> _activeSubscriptions = new();
     private readonly ConcurrentDictionary<PendingSubscriptionKey, TaskCompletionSource<MarketDataSubscriptionResult>> _pendingSubscriptions = new();
     private readonly ResilenceDuplexStreamWrapper<MarketDataStreamService.MarketDataStreamServiceClient, MarketDataRequest, MarketDataResponse> _streamWrapper;
-    private readonly Func<MarketDataResponse, Task>? _responseHandler;
+    private readonly Func<Guid, MarketDataResponse, Task>? _responseHandler;
     private readonly Func<StreamInfo, Task>? _connectionHandler;
     private readonly SemaphoreSlim _connectionHandlerLock = new(1, 1);
     private volatile int _firstConnectionCompleted = 0;
 
     public MarketDataStreamWrapper(
         ResilenceDuplexStreamConfigurer<MarketDataStreamService.MarketDataStreamServiceClient, MarketDataRequest, MarketDataResponse> configurer,
-        Func<MarketDataResponse, Task>? responseHandler = null,
+        Func<Guid, MarketDataResponse, Task>? responseHandler = null,
         Func<StreamInfo, Task>? connectionHandler = null,
         ILoggerFactory? loggerFactory = null)
     {
@@ -360,7 +360,7 @@ public class MarketDataStreamWrapper
         // Вызываем пользовательский обработчик, если есть
         if (_responseHandler != null)
         {
-            await _responseHandler(response);
+            await _responseHandler(Guid, response);
         }
     }
 

@@ -261,15 +261,11 @@ public class MarketDataStreamManager
 
     private MarketDataStreamWrapper CreateStream()
     {
-        // Захватываем экземпляр стрима в замыкании, чтобы при маршрутизации ответа
-        // знать Guid источника и адресовать локальные обработчики конкретного стрима.
-        MarketDataStreamWrapper? stream = null;
-        stream = new MarketDataStreamWrapper(
+        return new MarketDataStreamWrapper(
             _configurer,
-            response => RouteResponseAsync(stream!, response),
+            (id, response) => RouteResponseAsync(id, response),
             RecoveringConnectionHandler,
             _loggerFactory);
-        return stream;
     }
 
     /// <summary>
@@ -375,34 +371,33 @@ public class MarketDataStreamManager
 
     /// <summary>
     /// Маршрутизирует входящий ответ стрима в общий контекст.
-    /// <paramref name="stream"/> используется для адресации локальных обработчиков конкретного стрима.
+    /// <paramref name="id"/> используется для адресации локальных обработчиков конкретного стрима.
     /// </summary>
-    private async Task RouteResponseAsync(MarketDataStreamWrapper stream, MarketDataResponse response)
+    private async Task RouteResponseAsync(Guid id, MarketDataResponse response)
     {
-        var streamGuid = stream.Guid;
         if (response.Candle != null && response.Candle.IsInitialized())
         {
-            await _context.PushCandleAsync(response.Candle.ToModel(isHistorical: false), streamGuid);
+            await _context.PushCandleAsync(response.Candle.ToModel(isHistorical: false), id);
         }
         else if (response.Trade != null && response.Trade.IsInitialized())
         {
-            await _context.PushTradeAsync(response.Trade.ToModel(), streamGuid);
+            await _context.PushTradeAsync(response.Trade.ToModel(), id);
         }
         else if (response.Orderbook != null && response.Orderbook.IsInitialized())
         {
-            await _context.PushOrderBookAsync(response.Orderbook.ToWrapper(), streamGuid);
+            await _context.PushOrderBookAsync(response.Orderbook.ToWrapper(), id);
         }
         else if (response.LastPrice != null && response.LastPrice.IsInitialized())
         {
-            await _context.PushLastPriceAsync(response.LastPrice.ToModel(), streamGuid);
+            await _context.PushLastPriceAsync(response.LastPrice.ToModel(), id);
         }
         else if (response.OpenInterest != null && response.OpenInterest.IsInitialized())
         {
-            await _context.PushOpenInterestAsync(response.OpenInterest.ToModel(), streamGuid);
+            await _context.PushOpenInterestAsync(response.OpenInterest.ToModel(), id);
         }
         else if (response.TradingStatus != null && response.TradingStatus.IsInitialized())
         {
-            await _context.PushTradingStatusAsync(response.TradingStatus.ToModel(), streamGuid);
+            await _context.PushTradingStatusAsync(response.TradingStatus.ToModel(), id);
         }
     }
 
@@ -550,12 +545,13 @@ public class MarketDataStreamManager
 
     private static Candle MapCandle(HistoricCandle candle, MarketDataInstrument instrument)
     {
+        var tickerClassCode = TickerClassCode.Parse(instrument.TickerClassCode!);
         return new Candle
         {
             InstrumentUid = instrument.Uid,
             Figi = instrument.Figi,
-            Ticker = instrument.TickerClassCode?.Split("_")[0],
-            ClassCode = instrument.TickerClassCode?.Split("_")[1],
+            Ticker = tickerClassCode.Ticker,
+            ClassCode = tickerClassCode.ClassCode,
             Interval = instrument.Interval ?? SubscriptionInterval.Unspecified,
             Open = candle.Open,
             Close = candle.Close,
@@ -594,5 +590,14 @@ public class MarketDataStreamManager
 
         _terminationCts.Cancel();
         _terminationCts.Dispose();
+    }
+
+    record TickerClassCode(string Ticker, string ClassCode)
+    {
+        public static TickerClassCode Parse(string tickerClassCode)
+        {
+            var arr = tickerClassCode.Split('_');
+            return new TickerClassCode(arr[0], arr[1]);
+        }
     }
 }
