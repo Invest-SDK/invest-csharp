@@ -90,7 +90,7 @@ public class ResilenceDuplexStreamWrapper<TClient, TRequest, TResponse>(
         var completionSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
         await _queue.Writer.WriteAsync(new QueueItem(request, completionSource, cancellationToken), cancellationToken);
 
-        using var registration = cancellationToken.Register(() => completionSource.TrySetCanceled(cancellationToken));
+        cancellationToken.Register(() => completionSource.TrySetCanceled(cancellationToken));
         await completionSource.Task;
     }
 

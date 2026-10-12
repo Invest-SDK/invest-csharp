@@ -431,7 +431,7 @@ public class MarketDataStreamManager
         {
             InstrumentId = instrument.Uid,
             Interval = Enum.IsDefined(typeof(CandleInterval), intervalNumber) ? (CandleInterval)intervalNumber : CandleInterval.Unspecified,
-            From = lastInteractionTime.ToTimestampOrNull(),
+            From = lastInteractionTime?.ToTimestamp(),
             To = now.ToTimestamp(),
         };
         var response = _client.GetCandles(request);

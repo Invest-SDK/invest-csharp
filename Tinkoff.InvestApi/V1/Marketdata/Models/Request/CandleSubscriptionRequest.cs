@@ -18,7 +18,7 @@ public class CandleSubscriptionRequest(SubscriptionAction action, IEnumerable<Ma
                 {
                     InstrumentId = x.Uid ?? "",
                     Figi = x.Figi ?? "",
-                    Interval = (SubscriptionInterval) (int) (x.Interval ?? 0)
+                    Interval = (SubscriptionInterval) (int) (x.Interval ?? SubscriptionInterval.Unspecified)
                 }).ToList() }
             }
         };
