@@ -25,7 +25,7 @@ public class MarketDataStreamWrapper
         ];
     private readonly ILogger<MarketDataStreamWrapper>? _logger;
     private readonly ConcurrentQueue<SubscriptionRequestBase> _subscriptionRequests = new();
-    private readonly ConcurrentDictionary<string, SubscriptionRequestBase> _activeSubscriptions = new();
+    private readonly ConcurrentDictionary<string, ActiveSubscription> _activeSubscriptions = new();
     private readonly ConcurrentDictionary<PendingSubscriptionKey, TaskCompletionSource<MarketDataSubscriptionResult>> _pendingSubscriptions = new();
     private readonly ResilenceDuplexStreamWrapper<MarketDataStreamService.MarketDataStreamServiceClient, MarketDataRequest, MarketDataResponse> _streamWrapper;
     private readonly Func<Guid, MarketDataResponse, Task>? _responseHandler;
@@ -200,7 +200,7 @@ public class MarketDataStreamWrapper
         return _pendingSubscriptions.Count;
     }
 
-    public ConcurrentDictionary<string, SubscriptionRequestBase> GetActiveSubscriptions => _activeSubscriptions;
+    public ConcurrentDictionary<string, ActiveSubscription> GetActiveSubscriptions => _activeSubscriptions;
 
     public Guid Guid => _streamWrapper.StreamGuid;
 
@@ -331,7 +331,7 @@ public class MarketDataStreamWrapper
                 if (subscriptionResult.Action == MarketDataAction.SUBSCRIBE &&
                     kvp.Value == MarketDataSubscriptionStatus.OK)
                 {
-                    _activeSubscriptions.TryAdd(key, CreateSubscriptionRequest(subscriptionResult.ResponseType, kvp.Key, SubscriptionAction.Subscribe));
+                    _activeSubscriptions.TryAdd(key, new ActiveSubscription(subscriptionResult.ResponseType, kvp.Key));
                 }
                 else if (subscriptionResult.Action == MarketDataAction.UNSUBSCRIBE &&
                          kvp.Value == MarketDataSubscriptionStatus.OK)
@@ -348,12 +348,9 @@ public class MarketDataStreamWrapper
                 Uid: response.Candle.InstrumentUid,
                 Interval: response.Candle.Interval
             ));
-            _activeSubscriptions.TryGetValue(key, out var sub);
-            if (sub != null)
+            if (_activeSubscriptions.TryGetValue(key, out var sub))
             {
-                var candleSub = (CandleSubscriptionRequest)sub;
-                candleSub.LastInteractionTime = DateTimeOffset.UtcNow;
-                _activeSubscriptions.AddOrUpdate(key, candleSub, (k, v) => candleSub);
+                sub.LastInteractionTime = DateTimeOffset.UtcNow;
             }
         }
 
@@ -390,23 +387,6 @@ public class MarketDataStreamWrapper
             return [.. request.Instruments];
         }
         throw new ArgumentOutOfRangeException(nameof(request), request.GetType(), "Неизвестный тип запроса подписки");
-    }
-
-    private static SubscriptionRequestBase CreateSubscriptionRequest(
-        MarketDataResponseType responseType,
-        MarketDataInstrument instrument,
-        SubscriptionAction action)
-    {
-        return responseType switch
-        {
-            MarketDataResponseType.CANDLE => new CandleSubscriptionRequest(action, [instrument]),
-            MarketDataResponseType.ORDER_BOOK => new OrderBookSubscriptionRequest(action, [instrument]),
-            MarketDataResponseType.TRADE => new TradeSubscriptionRequest(action, [instrument]),
-            MarketDataResponseType.LAST_PRICE => new LastPriceSubscriptionRequest(action, [instrument]),
-            MarketDataResponseType.OPEN_INTEREST => new OpenInterestSubscriptionRequest(action, [instrument]),
-            MarketDataResponseType.TRADING_STATUS => new TradingStatusesSubscriptionRequest(action, [instrument]),
-            _ => throw new ArgumentOutOfRangeException(nameof(responseType), responseType, null)
-        };
     }
 
     /// <summary>

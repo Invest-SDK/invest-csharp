@@ -407,13 +407,12 @@ public class MarketDataStreamManager
         if (stream != null)
         {
             var candleSubscriptions = stream.GetActiveSubscriptions
-                .Where(s => s.Value is CandleSubscriptionRequest)
+                .Where(s => s.Value.ResponseType == MarketDataResponseType.CANDLE)
                 .Select(s => s.Value)
-                .Cast<CandleSubscriptionRequest>()
                 .ToList();
-            foreach (CandleSubscriptionRequest sub in candleSubscriptions)
+            foreach (ActiveSubscription sub in candleSubscriptions)
             {
-                await RecoverCandleSubscription(sub.Instruments[0], sub.LastInteractionTime, streamInfo.Guid);
+                await RecoverCandleSubscription(sub.Instrument, sub.LastInteractionTime, streamInfo.Guid);
             }
         }
     }
