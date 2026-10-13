@@ -7,29 +7,29 @@ namespace Tinkoff.InvestApi.Stream;
 /// <summary>
 /// Класс обёртка для server-side stream-соединения. Выполняет автоматическую проверку состояния соединения и переподключение при необходимости.
 /// </summary>
-public class ResilenceServerSideStreamWrapper<TClient, TRequest, TResponse>(
-    ResilenceServerSideStreamConfigurer<TClient, TRequest, TResponse> streamConfigurer,
+public class ResilienceServerSideStreamWrapper<TClient, TRequest, TResponse>(
+    ResilienceServerSideStreamConfigurer<TClient, TRequest, TResponse> streamConfigurer,
     Func<TResponse, Task> messageHandler = null,
     Func<TRequest, Task> connectionHandler = null)
     where TClient : ClientBase<TClient>
     where TRequest : class
     where TResponse : class
 {
-    private readonly ResilenceServerSideStreamConfigurer<TClient, TRequest, TResponse> _streamConfigurer = streamConfigurer;
+    private readonly ResilienceServerSideStreamConfigurer<TClient, TRequest, TResponse> _streamConfigurer = streamConfigurer;
     private readonly Func<TResponse, Task> _messageHandler = messageHandler;
     private readonly Func<TRequest, Task> _connectionHandler = connectionHandler;
     private TRequest _request = null!;
     private long _lastInteraction = 0;
     private CancellationTokenSource? _disconnectCts;
     private Task? _healthCheckTask;
-    private long _attampts = 0;
+    private long _attempts = 0;
 
     public async Task SubscribeAsync(TRequest request)
     {
         _request = request ?? throw new ArgumentNullException(nameof(request));
         _disconnectCts = new CancellationTokenSource();
 
-        while (Interlocked.Read(ref _attampts) < _streamConfigurer.MaxRetryAttampt)
+        while (Interlocked.Read(ref _attempts) < _streamConfigurer.MaxRetryAttempt)
         {
             var reconnectCts = new CancellationTokenSource();
             var streamCts = CancellationTokenSource.CreateLinkedTokenSource(_disconnectCts.Token, reconnectCts.Token);
@@ -79,7 +79,7 @@ public class ResilenceServerSideStreamWrapper<TClient, TRequest, TResponse>(
                 }
             }
 
-            Interlocked.Increment(ref _attampts);
+            Interlocked.Increment(ref _attempts);
             // Backoff перед переподключением
             await Task.Delay(_streamConfigurer.BackOffDelayMs, _disconnectCts.Token);
         }
@@ -96,7 +96,7 @@ public class ResilenceServerSideStreamWrapper<TClient, TRequest, TResponse>(
             }
 
             Interlocked.Exchange(ref _lastInteraction, DateTimeOffset.UtcNow.ToUnixTimeMilliseconds());
-            Interlocked.Exchange(ref _attampts, 0);
+            Interlocked.Exchange(ref _attempts, 0);
 
             if (_messageHandler != null)
             {

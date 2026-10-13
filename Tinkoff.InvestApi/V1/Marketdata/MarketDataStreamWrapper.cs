@@ -27,25 +27,25 @@ public class MarketDataStreamWrapper
     private readonly ConcurrentQueue<SubscriptionRequestBase> _subscriptionRequests = new();
     private readonly ConcurrentDictionary<string, ActiveSubscription> _activeSubscriptions = new();
     private readonly ConcurrentDictionary<PendingSubscriptionKey, TaskCompletionSource<MarketDataSubscriptionResult>> _pendingSubscriptions = new();
-    private readonly ResilenceDuplexStreamWrapper<MarketDataStreamService.MarketDataStreamServiceClient, MarketDataRequest, MarketDataResponse> _streamWrapper;
+    private readonly ResilienceDuplexStreamWrapper<MarketDataStreamService.MarketDataStreamServiceClient, MarketDataRequest, MarketDataResponse> _streamWrapper;
     private readonly Func<Guid, MarketDataResponse, Task>? _responseHandler;
     private readonly Func<StreamInfo, Task>? _connectionHandler;
     private readonly SemaphoreSlim _connectionHandlerLock = new(1, 1);
     private volatile int _firstConnectionCompleted = 0;
 
     public MarketDataStreamWrapper(
-        ResilenceDuplexStreamConfigurer<MarketDataStreamService.MarketDataStreamServiceClient, MarketDataRequest, MarketDataResponse> configurer,
+        ResilienceDuplexStreamConfigurer<MarketDataStreamService.MarketDataStreamServiceClient, MarketDataRequest, MarketDataResponse> configurer,
         Func<Guid, MarketDataResponse, Task>? responseHandler = null,
         Func<StreamInfo, Task>? connectionHandler = null,
         ILoggerFactory? loggerFactory = null)
     {
         _responseHandler = responseHandler;
         _connectionHandler = connectionHandler;
-        _streamWrapper = new ResilenceDuplexStreamWrapper<MarketDataStreamService.MarketDataStreamServiceClient, MarketDataRequest, MarketDataResponse>(
+        _streamWrapper = new ResilienceDuplexStreamWrapper<MarketDataStreamService.MarketDataStreamServiceClient, MarketDataRequest, MarketDataResponse>(
             configurer,
             HandleResponseAsync,
             HandleConnectionAsync,
-            loggerFactory?.CreateLogger<ResilenceDuplexStreamWrapper<MarketDataStreamService.MarketDataStreamServiceClient, MarketDataRequest, MarketDataResponse>>()
+            loggerFactory?.CreateLogger<ResilienceDuplexStreamWrapper<MarketDataStreamService.MarketDataStreamServiceClient, MarketDataRequest, MarketDataResponse>>()
             );
         _logger = loggerFactory?.CreateLogger<MarketDataStreamWrapper>();
     }
@@ -235,9 +235,9 @@ public class MarketDataStreamWrapper
         foreach (var (key, task) in pending)
         {
             var result = await task;
-            if (result.SubsciptionStatusDictionary.Values.Any(s => s != MarketDataSubscriptionStatus.OK))
+            if (result.SubscriptionStatusDictionary.Values.Any(s => s != MarketDataSubscriptionStatus.OK))
             {
-                throw new InvalidOperationException($"Подписка не удалась для {key}");
+                throw new InvalidOperationException($"Subscription failed for {key}");
             }
         }
     }
@@ -273,9 +273,9 @@ public class MarketDataStreamWrapper
         foreach (var (key, task) in pending)
         {
             var result = await task;
-            if (result.SubsciptionStatusDictionary.Values.Any(s => s != MarketDataSubscriptionStatus.OK))
+            if (result.SubscriptionStatusDictionary.Values.Any(s => s != MarketDataSubscriptionStatus.OK))
             {
-                throw new InvalidOperationException($"Отписка не удалась для {key}");
+                throw new InvalidOperationException($"Unsubscription failed for {key}");
             }
         }
     }
@@ -316,7 +316,7 @@ public class MarketDataStreamWrapper
         if (subscriptionResult != null)
         {
             // Обновляем активные подписки на основе результата и завершаем ожидающие задачи
-            foreach (var kvp in subscriptionResult.SubsciptionStatusDictionary)
+            foreach (var kvp in subscriptionResult.SubscriptionStatusDictionary)
             {
                 // Завершаем ожидающую подписку: ключ-обёртка сопоставляется по указанным в запросе
                 // полям инструмента, поэтому ответ с полным инструментом находит ожидание неполного запроса.
@@ -382,7 +382,7 @@ public class MarketDataStreamWrapper
             LastPriceSubscriptionRequest => MarketDataResponseType.LAST_PRICE,
             OpenInterestSubscriptionRequest => MarketDataResponseType.OPEN_INTEREST,
             TradingStatusesSubscriptionRequest => MarketDataResponseType.TRADING_STATUS,
-            _ => throw new ArgumentOutOfRangeException(nameof(request), request.GetType(), "Неизвестный тип запроса подписки")
+            _ => throw new ArgumentOutOfRangeException(nameof(request), request.GetType(), "Unknown subscription request type")
         };
     }
 
@@ -392,7 +392,7 @@ public class MarketDataStreamWrapper
         {
             return [.. request.Instruments];
         }
-        throw new ArgumentOutOfRangeException(nameof(request), request.GetType(), "Неизвестный тип запроса подписки");
+        throw new ArgumentOutOfRangeException(nameof(request), request.GetType(), "Unknown subscription request type");
     }
 
     /// <summary>

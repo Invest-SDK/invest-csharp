@@ -10,7 +10,7 @@ public class Example1(ILogger<Example1> logger, InvestApiClient client)
 
     public async Task Run()
     {
-        var configuration = new ResilenceDuplexStreamConfigurer<MarketDataStreamService.MarketDataStreamServiceClient, MarketDataRequest, MarketDataResponse>(
+        var configuration = new ResilienceDuplexStreamConfigurer<MarketDataStreamService.MarketDataStreamServiceClient, MarketDataRequest, MarketDataResponse>(
             client.MarketDataStream,
             (client, options) => client.MarketDataStream(options))
             .WithPingDelayMs(1000)
@@ -40,7 +40,7 @@ public class Example1(ILogger<Example1> logger, InvestApiClient client)
             }
         };
         int i = 0;
-        var stream = new ResilenceDuplexStreamWrapper<MarketDataStreamService.MarketDataStreamServiceClient, MarketDataRequest, MarketDataResponse>(
+        var stream = new ResilienceDuplexStreamWrapper<MarketDataStreamService.MarketDataStreamServiceClient, MarketDataRequest, MarketDataResponse>(
             configuration,
             async response =>
         {

@@ -8,7 +8,7 @@ namespace Tinkoff.InvestApi.Stream;
 /// </summary>
 /// <param name="client">Клиент для создания соединения</param>
 public class MarketDataManagerConfigurer(MarketDataStreamService.MarketDataStreamServiceClient client) 
-: ResilenceDuplexStreamConfigurer<MarketDataStreamService.MarketDataStreamServiceClient, MarketDataRequest, MarketDataResponse>(client, (c, options) => c.MarketDataStream(options))
+: ResilienceDuplexStreamConfigurer<MarketDataStreamService.MarketDataStreamServiceClient, MarketDataRequest, MarketDataResponse>(client, (c, options) => c.MarketDataStream(options))
 {
     public int MaxSubscriptionsPerStream { get; set; } = 300;
     public int MaxStreams { get; set; } = 16;
@@ -49,9 +49,9 @@ public class MarketDataManagerConfigurer(MarketDataStreamService.MarketDataStrea
         return this;
     }
 
-    public new MarketDataManagerConfigurer WithMaxRetryAttampt(int maxRetryAttampt)
+    public new MarketDataManagerConfigurer WithMaxRetryAttempt(int maxRetryAttempt)
     {
-        MaxRetryAttampt = maxRetryAttampt;
+        MaxRetryAttempt = maxRetryAttempt;
         return this;
     }
 

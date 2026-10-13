@@ -5,7 +5,7 @@ namespace Tinkoff.InvestApi.Stream;
 /// <summary>
 /// Конфигуратор для двунаправленного stream-соединения
 /// </summary>
-public class ResilenceDuplexStreamConfigurer<TClient, TRequest, TResponse>(TClient client, Func<TClient, CallOptions, AsyncDuplexStreamingCall<TRequest, TResponse>> callMethod) : StreamConfigurer<TClient, TRequest, TResponse>(client)
+public class ResilienceDuplexStreamConfigurer<TClient, TRequest, TResponse>(TClient client, Func<TClient, CallOptions, AsyncDuplexStreamingCall<TRequest, TResponse>> callMethod) : StreamConfigurer<TClient, TRequest, TResponse>(client)
 where TRequest : class
 where TResponse : class
 {
@@ -19,43 +19,43 @@ where TResponse : class
     /// </summary>
     public long ConnectTimeoutMs { get; set; } = 30000;
 
-    public ResilenceDuplexStreamConfigurer<TClient, TRequest, TResponse> WithCallMethod(Func<TClient, CallOptions, AsyncDuplexStreamingCall<TRequest, TResponse>> callMethod)
+    public ResilienceDuplexStreamConfigurer<TClient, TRequest, TResponse> WithCallMethod(Func<TClient, CallOptions, AsyncDuplexStreamingCall<TRequest, TResponse>> callMethod)
     {
         CallMethod = callMethod;
         return this;
     }
 
-    public ResilenceDuplexStreamConfigurer<TClient, TRequest, TResponse> WithCallOptions(CallOptions callOptions)
+    public ResilienceDuplexStreamConfigurer<TClient, TRequest, TResponse> WithCallOptions(CallOptions callOptions)
     {
         CallOptions = callOptions;
         return this;
     }
 
-    public ResilenceDuplexStreamConfigurer<TClient, TRequest, TResponse> WithBackOffDelayMs(int backOffDelayMs)
+    public ResilienceDuplexStreamConfigurer<TClient, TRequest, TResponse> WithBackOffDelayMs(int backOffDelayMs)
     {
         BackOffDelayMs = backOffDelayMs;
         return this;
     }
 
-    public ResilenceDuplexStreamConfigurer<TClient, TRequest, TResponse> WithPingDelayMs(int pingDelayMs)
+    public ResilienceDuplexStreamConfigurer<TClient, TRequest, TResponse> WithPingDelayMs(int pingDelayMs)
     {
         PingDelayMs = pingDelayMs;
         return this;
     }
 
-    public ResilenceDuplexStreamConfigurer<TClient, TRequest, TResponse> WithInactivityTimeoutMs(long inactivityTimeoutMs)
+    public ResilienceDuplexStreamConfigurer<TClient, TRequest, TResponse> WithInactivityTimeoutMs(long inactivityTimeoutMs)
     {
         InactivityTimeoutMs = inactivityTimeoutMs;
         return this;
     }
 
-    public ResilenceDuplexStreamConfigurer<TClient, TRequest, TResponse> WithMaxRetryAttampt(int maxRetryAttampt)
+    public ResilienceDuplexStreamConfigurer<TClient, TRequest, TResponse> WithMaxRetryAttempt(int maxRetryAttempt)
     {
-        MaxRetryAttampt = maxRetryAttampt;
+        MaxRetryAttempt = maxRetryAttempt;
         return this;
     }
 
-    public ResilenceDuplexStreamConfigurer<TClient, TRequest, TResponse> WithConnectTimeoutMs(long connectTimeoutMs)
+    public ResilienceDuplexStreamConfigurer<TClient, TRequest, TResponse> WithConnectTimeoutMs(long connectTimeoutMs)
     {
         ConnectTimeoutMs = connectTimeoutMs;
         return this;

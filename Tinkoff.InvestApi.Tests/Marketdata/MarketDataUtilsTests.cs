@@ -133,7 +133,7 @@ public class MarketDataUtilsTests
         var result = MarketDataUtils.GetSubscriptionResultFromResponse(response);
 
         result.Should().NotBeNull();
-        result!.SubsciptionStatusDictionary?.Values.Should().ContainSingle().Which.Should().Be(expected);
+        result!.SubscriptionStatusDictionary?.Values.Should().ContainSingle().Which.Should().Be(expected);
     }
 
     public static IEnumerable<object[]> GetSubscriptionStatusTestData()

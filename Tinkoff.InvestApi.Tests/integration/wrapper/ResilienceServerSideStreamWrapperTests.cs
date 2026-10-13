@@ -8,13 +8,13 @@ using Xunit.Abstractions;
 namespace Tinkoff.InvestApi.Tests.Integration.Wrapper;
 
 [Collection("GrpcIntegration")]
-public class ResilenceServerSideStreamWrapperTests : IAsyncLifetime
+public class ResilienceServerSideStreamWrapperTests : IAsyncLifetime
 {
     private readonly ITestOutputHelper _output;
     private readonly GrpcTestServerFixture _fixture;
     private readonly ConcurrentBag<string> _receivedMessages;
 
-    public ResilenceServerSideStreamWrapperTests(GrpcTestServerFixture fixture, ITestOutputHelper output)
+    public ResilienceServerSideStreamWrapperTests(GrpcTestServerFixture fixture, ITestOutputHelper output)
     {
         _fixture = fixture;
         _output = output;
@@ -55,12 +55,12 @@ public class ResilenceServerSideStreamWrapperTests : IAsyncLifetime
         var reconnectDetected = false;
         var channel = _fixture.CreateChannel();
         var client = new TestStreamService.TestStreamServiceClient(channel);
-        var configurer = new ResilenceServerSideStreamConfigurer<TestStreamService.TestStreamServiceClient, SubscribeRequest, StreamMessage>(client, (c, req, co) => c.Subscribe(req, co))
+        var configurer = new ResilienceServerSideStreamConfigurer<TestStreamService.TestStreamServiceClient, SubscribeRequest, StreamMessage>(client, (c, req, co) => c.Subscribe(req, co))
         .WithInactivityTimeoutMs(inactivityTimeoutMs)
         .WithPingDelayMs(pingDelayMs)
         .WithBackOffDelayMs(100);
 
-        var wrapper = new ResilenceServerSideStreamWrapper<TestStreamService.TestStreamServiceClient, SubscribeRequest, StreamMessage>(
+        var wrapper = new ResilienceServerSideStreamWrapper<TestStreamService.TestStreamServiceClient, SubscribeRequest, StreamMessage>(
             streamConfigurer: configurer,
             messageHandler: response =>
             {
@@ -122,12 +122,12 @@ public class ResilenceServerSideStreamWrapperTests : IAsyncLifetime
         {
             var channel = _fixture.CreateChannel();
             var client = new TestStreamService.TestStreamServiceClient(channel);
-            var configurer = new ResilenceServerSideStreamConfigurer<TestStreamService.TestStreamServiceClient, SubscribeRequest, StreamMessage>(client, (c, req, co) => c.Subscribe(req, co))
+            var configurer = new ResilienceServerSideStreamConfigurer<TestStreamService.TestStreamServiceClient, SubscribeRequest, StreamMessage>(client, (c, req, co) => c.Subscribe(req, co))
             .WithInactivityTimeoutMs(inactivityTimeoutMs)
             .WithPingDelayMs(pingDelayMs)
             .WithBackOffDelayMs(100);
 
-            var wrapper = new ResilenceServerSideStreamWrapper<TestStreamService.TestStreamServiceClient, SubscribeRequest, StreamMessage>(
+            var wrapper = new ResilienceServerSideStreamWrapper<TestStreamService.TestStreamServiceClient, SubscribeRequest, StreamMessage>(
                 configurer,
                 response =>
                 {
@@ -180,12 +180,12 @@ public class ResilenceServerSideStreamWrapperTests : IAsyncLifetime
         {
             var channel = _fixture.CreateChannel();
             var client = new TestStreamService.TestStreamServiceClient(channel);
-            var configurer = new ResilenceServerSideStreamConfigurer<TestStreamService.TestStreamServiceClient, SubscribeRequest, StreamMessage>(client, (c, req, co) => c.Subscribe(req, co))
+            var configurer = new ResilienceServerSideStreamConfigurer<TestStreamService.TestStreamServiceClient, SubscribeRequest, StreamMessage>(client, (c, req, co) => c.Subscribe(req, co))
             .WithInactivityTimeoutMs(inactivityTimeoutMs)
             .WithPingDelayMs(pingDelayMs)
             .WithBackOffDelayMs(100);
 
-            var wrapper = new ResilenceServerSideStreamWrapper<TestStreamService.TestStreamServiceClient, SubscribeRequest, StreamMessage>(
+            var wrapper = new ResilienceServerSideStreamWrapper<TestStreamService.TestStreamServiceClient, SubscribeRequest, StreamMessage>(
                 configurer,
                 response =>
                 {
@@ -236,13 +236,13 @@ public class ResilenceServerSideStreamWrapperTests : IAsyncLifetime
         var reconnectAttempted = false;
         var channel = _fixture.CreateChannel();
         var client = new TestStreamService.TestStreamServiceClient(channel);
-        var configurer = new ResilenceServerSideStreamConfigurer<TestStreamService.TestStreamServiceClient, SubscribeRequest, StreamMessage>(client, (c, req, co) => c.Subscribe(req, co))
+        var configurer = new ResilienceServerSideStreamConfigurer<TestStreamService.TestStreamServiceClient, SubscribeRequest, StreamMessage>(client, (c, req, co) => c.Subscribe(req, co))
         .WithInactivityTimeoutMs(inactivityTimeoutMs)
         .WithPingDelayMs(pingDelayMs)
         .WithBackOffDelayMs(100)
-        .WithMaxRetryAttampt(3);
+        .WithMaxRetryAttempt(3);
 
-        var wrapper = new ResilenceServerSideStreamWrapper<TestStreamService.TestStreamServiceClient, SubscribeRequest, StreamMessage>(
+        var wrapper = new ResilienceServerSideStreamWrapper<TestStreamService.TestStreamServiceClient, SubscribeRequest, StreamMessage>(
             configurer,
             connectionHandler: request =>
             {
@@ -283,7 +283,7 @@ public class ResilenceServerSideStreamWrapperTests : IAsyncLifetime
             $"Total connections: {TestStreamServiceImpl.ConnectionCount}");
         wrapper.Disconnect();
         await subscribeTask;
-        attempts.Should().Be(configurer.MaxRetryAttampt, "должно быть " + configurer.MaxRetryAttampt + " попыток переподключения");
+        attempts.Should().Be(configurer.MaxRetryAttempt, "должно быть " + configurer.MaxRetryAttempt + " попыток переподключения");
 
         Write($"[TEST] Total connections: {TestStreamServiceImpl.ConnectionCount}");
     }

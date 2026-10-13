@@ -4,5 +4,5 @@ public record MarketDataSubscriptionResult
 (
     MarketDataAction Action = MarketDataAction.UNKNOWN,
     MarketDataResponseType ResponseType = MarketDataResponseType.OTHER,
-    Dictionary<MarketDataInstrument, MarketDataSubscriptionStatus>? SubsciptionStatusDictionary = null
+    Dictionary<MarketDataInstrument, MarketDataSubscriptionStatus>? SubscriptionStatusDictionary = null
 );

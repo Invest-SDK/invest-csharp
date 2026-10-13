@@ -23,7 +23,7 @@ public class MarketDataStreamManager
     private readonly int _maxSubscriptionsPerStream;
     private readonly int _maxStreams;
     private readonly MarketDataStreamContext _context = new();
-    private readonly ResilenceDuplexStreamConfigurer<MarketDataStreamService.MarketDataStreamServiceClient, MarketDataRequest, MarketDataResponse> _configurer;
+    private readonly ResilienceDuplexStreamConfigurer<MarketDataStreamService.MarketDataStreamServiceClient, MarketDataRequest, MarketDataResponse> _configurer;
     private readonly MarketDataService.MarketDataServiceClient _client;
     private readonly ILoggerFactory? _loggerFactory;
     private readonly ILogger<MarketDataStreamManager>? _logger;
@@ -76,7 +76,10 @@ public class MarketDataStreamManager
     }
 
     /// <summary>
-    /// Создаёт первый стрим и устанавливает соединение. Если стрим уже создан — не выполняет никаких действий.
+    /// Прогревает пул: создаёт первый стрим и устанавливает соединение.
+    /// Опционален: первая подписка (Subscribe*Async) сама лениво создаёт и подключает стрим через <c>CallAsync</c>.
+    /// Повторный вызов не выполняет никаких действий, если стрим уже создан.
+    /// Используйте для раннего установления соединения до подписок.
     /// </summary>
     public async Task StartAsync(CancellationToken cancellationToken = default)
     {
@@ -295,7 +298,7 @@ public class MarketDataStreamManager
                 {
                     if (_streams.Count >= _maxStreams)
                     {
-                        throw new InvalidOperationException($"Достигнут лимит количества стримов: {_maxStreams}. Увеличьте лимит или удалите неиспользуемые подписки.");
+                        throw new InvalidOperationException($"Stream count limit reached: {_maxStreams}. Increase the limit or remove unused subscriptions.");
                     }
 
                     stream = CreateStream();
@@ -351,7 +354,7 @@ public class MarketDataStreamManager
             }
             else
             {
-                _logger?.LogWarning("Не найдена подписка для отписки: {Key}", key);
+                _logger?.LogWarning("No subscription found to unsubscribe: {Key}", key);
             }
         }
 
@@ -588,7 +591,7 @@ public class MarketDataStreamManager
             }
             catch (Exception ex)
             {
-                _logger?.LogWarning(ex, "Ошибка при освобождении стрима");
+                _logger?.LogWarning(ex, "Error while disposing stream");
             }
         }
     }

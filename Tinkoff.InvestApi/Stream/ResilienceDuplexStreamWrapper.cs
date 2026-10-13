@@ -8,8 +8,8 @@ namespace Tinkoff.InvestApi.Stream;
 /// <summary>
 /// Класс обёртка для duplex stream-соединения. Выполняет автоматическую проверку состояния соединения и переподключение при необходимости.
 /// </summary>
-public class ResilenceDuplexStreamWrapper<TClient, TRequest, TResponse>(
-    ResilenceDuplexStreamConfigurer<TClient, TRequest, TResponse> streamConfigurer,
+public class ResilienceDuplexStreamWrapper<TClient, TRequest, TResponse>(
+    ResilienceDuplexStreamConfigurer<TClient, TRequest, TResponse> streamConfigurer,
     Func<TResponse, Task>? messageHandler = null,
     Func<AsyncDuplexStreamingCall<TRequest, TResponse>, Task>? connectionHandler = null,
     ILogger? logger = null)
@@ -18,7 +18,7 @@ public class ResilenceDuplexStreamWrapper<TClient, TRequest, TResponse>(
     where TClient : ClientBase<TClient>
 {
     private readonly Guid streamGuid = Guid.NewGuid();
-    private readonly ResilenceDuplexStreamConfigurer<TClient, TRequest, TResponse> _streamConfigurer = streamConfigurer;
+    private readonly ResilienceDuplexStreamConfigurer<TClient, TRequest, TResponse> _streamConfigurer = streamConfigurer;
     private readonly Func<TResponse, Task>? _messageHandler = messageHandler;
     private readonly Func<AsyncDuplexStreamingCall<TRequest, TResponse>, Task>? _connectionHandler = connectionHandler;
     private readonly ILogger? _logger = logger;
@@ -33,7 +33,7 @@ public class ResilenceDuplexStreamWrapper<TClient, TRequest, TResponse>(
     private Task? _healthCheckTask;
     private AsyncDuplexStreamingCall<TRequest, TResponse>? _currentStream;
     private volatile bool _isConnecting;
-    private long _attampts = 0;
+    private long _attempts = 0;
     private int _writeLoopStarted;
 
     private sealed class QueueItem
@@ -194,13 +194,13 @@ public class ResilenceDuplexStreamWrapper<TClient, TRequest, TResponse>(
         catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
         {
             throw new TimeoutException(
-                $"Duplex stream did not connect within {_streamConfigurer.ConnectTimeoutMs} ms. Call ConnectAsync before sending.");
+                $"Duplex stream did not connect within {_streamConfigurer.ConnectTimeoutMs} ms.");
         }
     }
 
     private async Task RunBackgroundLoopAsync(CancellationTokenSource backgroundCts, CancellationToken cancellationToken)
     {
-        while (!backgroundCts.IsCancellationRequested && Interlocked.Read(ref _attampts) < _streamConfigurer.MaxRetryAttampt)
+        while (!backgroundCts.IsCancellationRequested && Interlocked.Read(ref _attempts) < _streamConfigurer.MaxRetryAttempt)
         {
             var reconnectCts = new CancellationTokenSource();
             var streamCts = CancellationTokenSource.CreateLinkedTokenSource(_disconnectCts!.Token, reconnectCts.Token, cancellationToken);
@@ -257,7 +257,7 @@ public class ResilenceDuplexStreamWrapper<TClient, TRequest, TResponse>(
                 reconnectCts.Cancel();
             }
 
-            Interlocked.Increment(ref _attampts);
+            Interlocked.Increment(ref _attempts);
             // Backoff перед переподключением
             await Task.Delay(_streamConfigurer.BackOffDelayMs, backgroundCts.Token);
         }
@@ -278,7 +278,7 @@ public class ResilenceDuplexStreamWrapper<TClient, TRequest, TResponse>(
                     }
 
                     Interlocked.Exchange(ref _lastInteraction, DateTimeOffset.UtcNow.ToUnixTimeMilliseconds());
-                    Interlocked.Exchange(ref _attampts, 0);
+                    Interlocked.Exchange(ref _attempts, 0);
 
                     if (_messageHandler != null)
                     {

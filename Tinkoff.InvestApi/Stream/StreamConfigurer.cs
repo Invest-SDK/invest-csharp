@@ -34,7 +34,7 @@ where TResponse : class
     /// <summary>
     /// Максимальное количество попыток подключения
     /// </summary>
-    public int MaxRetryAttampt { get; set; } = 5;
+    public int MaxRetryAttempt { get; set; } = 5;
 
     public StreamConfigurer<TClient, TRequest, TResponse> WithClient(TClient client)
     {

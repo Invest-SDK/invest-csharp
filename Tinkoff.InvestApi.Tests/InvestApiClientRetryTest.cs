@@ -9,7 +9,7 @@ public class InvestApiClientRetryTest
 {
 
     [Fact]
-    public async Task TestTwoAttamptsForBlockingUnaryCall()
+    public async Task TestTwoAttemptsForBlockingUnaryCall()
     {
         var mockCallInvoker = new Mock<CallInvoker>();
         var expectedResponse = new GetInfoResponse();
@@ -27,7 +27,7 @@ public class InvestApiClientRetryTest
     }
 
     [Fact]
-    public async Task TestTwoAttamptsForAsyncUnaryCall()
+    public async Task TestTwoAttemptsForAsyncUnaryCall()
     {
         var mockCallInvoker = new Mock<CallInvoker>();
         var metadata =  new Metadata();
