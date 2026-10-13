@@ -27,7 +27,6 @@ public class MarketDataStreamManager
     private readonly MarketDataService.MarketDataServiceClient _client;
     private readonly ILoggerFactory? _loggerFactory;
     private readonly ILogger<MarketDataStreamManager>? _logger;
-    private CancellationTokenSource _terminationCts = new();
 
     public MarketDataStreamManager(
         MarketDataManagerConfigurer configurer,
@@ -107,7 +106,7 @@ public class MarketDataStreamManager
         Func<CandleModel, Task>? onCandle = null)
         => RouteSubscribeAsync(
             instruments.ToList(),
-            i => SubscriptionKey(MarketDataResponseType.CANDLE, i.Figi, i.Uid),
+            i => SubscriptionKey(MarketDataResponseType.CANDLE, i),
             (s, batch, ct) => s.SubscribeCandlesAsync(batch, ct),
             cancellationToken,
             onCandle == null ? null : (s, batch) => RegisterLocalHandler(MarketDataResponseType.CANDLE, s, batch, onCandle));
@@ -119,7 +118,7 @@ public class MarketDataStreamManager
     public Task UnsubscribeCandlesAsync(IEnumerable<MarketDataInstrument> instruments, CancellationToken cancellationToken = default)
         => RouteUnsubscribeAsync(
             instruments.ToList(),
-            i => SubscriptionKey(MarketDataResponseType.CANDLE, i.Figi, i.Uid),
+            i => SubscriptionKey(MarketDataResponseType.CANDLE, i),
             (s, batch, ct) => s.UnsubscribeCandlesAsync(batch, ct),
             cancellationToken,
             (s, batch) => UnregisterLocalHandler(MarketDataResponseType.CANDLE, s, batch));
@@ -134,7 +133,7 @@ public class MarketDataStreamManager
         Func<OrderBookModel, Task>? onOrderBook = null)
         => RouteSubscribeAsync(
             instruments.ToList(),
-            i => SubscriptionKey(MarketDataResponseType.ORDER_BOOK, i.Figi, i.Uid),
+            i => SubscriptionKey(MarketDataResponseType.ORDER_BOOK, i),
             (s, batch, ct) => s.SubscribeOrderBookAsync(batch, ct),
             cancellationToken,
             onOrderBook == null ? null : (s, batch) => RegisterLocalHandler(MarketDataResponseType.ORDER_BOOK, s, batch, onOrderBook));
@@ -146,7 +145,7 @@ public class MarketDataStreamManager
     public Task UnsubscribeOrderBookAsync(IEnumerable<MarketDataInstrument> instruments, CancellationToken cancellationToken = default)
         => RouteUnsubscribeAsync(
             instruments.ToList(),
-            i => SubscriptionKey(MarketDataResponseType.ORDER_BOOK, i.Figi, i.Uid),
+            i => SubscriptionKey(MarketDataResponseType.ORDER_BOOK, i),
             (s, batch, ct) => s.UnsubscribeOrderBookAsync(batch, ct),
             cancellationToken,
             (s, batch) => UnregisterLocalHandler(MarketDataResponseType.ORDER_BOOK, s, batch));
@@ -161,7 +160,7 @@ public class MarketDataStreamManager
         Func<TradeModel, Task>? onTrade = null)
         => RouteSubscribeAsync(
             instruments.ToList(),
-            i => SubscriptionKey(MarketDataResponseType.TRADE, i.Figi, i.Uid),
+            i => SubscriptionKey(MarketDataResponseType.TRADE, i),
             (s, batch, ct) => s.SubscribeTradesAsync(batch, ct),
             cancellationToken,
             onTrade == null ? null : (s, batch) => RegisterLocalHandler(MarketDataResponseType.TRADE, s, batch, onTrade));
@@ -173,7 +172,7 @@ public class MarketDataStreamManager
     public Task UnsubscribeTradesAsync(IEnumerable<MarketDataInstrument> instruments, CancellationToken cancellationToken = default)
         => RouteUnsubscribeAsync(
             instruments.ToList(),
-            i => SubscriptionKey(MarketDataResponseType.TRADE, i.Figi, i.Uid),
+            i => SubscriptionKey(MarketDataResponseType.TRADE, i),
             (s, batch, ct) => s.UnsubscribeTradesAsync(batch, ct),
             cancellationToken,
             (s, batch) => UnregisterLocalHandler(MarketDataResponseType.TRADE, s, batch));
@@ -188,7 +187,7 @@ public class MarketDataStreamManager
         Func<TradingStatusModel, Task>? onTradingStatuses = null)
         => RouteSubscribeAsync(
             instruments.ToList(),
-            i => SubscriptionKey(MarketDataResponseType.TRADING_STATUS, i.Figi, i.Uid),
+            i => SubscriptionKey(MarketDataResponseType.TRADING_STATUS, i),
             (s, batch, ct) => s.SubscribeTradingStatusesAsync(batch, ct),
             cancellationToken,
             onTradingStatuses == null ? null : (s, batch) => RegisterLocalHandler(MarketDataResponseType.TRADING_STATUS, s, batch, onTradingStatuses));
@@ -200,7 +199,7 @@ public class MarketDataStreamManager
     public Task UnsubscribeTradingStatusesAsync(IEnumerable<MarketDataInstrument> instruments, CancellationToken cancellationToken = default)
         => RouteUnsubscribeAsync(
             instruments.ToList(),
-            i => SubscriptionKey(MarketDataResponseType.TRADING_STATUS, i.Figi, i.Uid),
+            i => SubscriptionKey(MarketDataResponseType.TRADING_STATUS, i),
             (s, batch, ct) => s.UnsubscribeTradingStatusesAsync(batch, ct),
             cancellationToken,
             (s, batch) => UnregisterLocalHandler(MarketDataResponseType.TRADING_STATUS, s, batch));
@@ -215,7 +214,7 @@ public class MarketDataStreamManager
         Func<LastPriceModel, Task>? onLastPrice = null)
         => RouteSubscribeAsync(
             instruments.ToList(),
-            i => SubscriptionKey(MarketDataResponseType.LAST_PRICE, i.Figi, i.Uid),
+            i => SubscriptionKey(MarketDataResponseType.LAST_PRICE, i),
             (s, batch, ct) => s.SubscribeLastPriceAsync(batch, ct),
             cancellationToken,
             onLastPrice == null ? null : (s, batch) => RegisterLocalHandler(MarketDataResponseType.LAST_PRICE, s, batch, onLastPrice));
@@ -227,7 +226,7 @@ public class MarketDataStreamManager
     public Task UnsubscribeLastPriceAsync(IEnumerable<MarketDataInstrument> instruments, CancellationToken cancellationToken = default)
         => RouteUnsubscribeAsync(
             instruments.ToList(),
-            i => SubscriptionKey(MarketDataResponseType.LAST_PRICE, i.Figi, i.Uid),
+            i => SubscriptionKey(MarketDataResponseType.LAST_PRICE, i),
             (s, batch, ct) => s.UnsubscribeLastPriceAsync(batch, ct),
             cancellationToken,
             (s, batch) => UnregisterLocalHandler(MarketDataResponseType.LAST_PRICE, s, batch));
@@ -242,7 +241,7 @@ public class MarketDataStreamManager
         Func<OpenInterestModel, Task>? onOpenInterest = null)
         => RouteSubscribeAsync(
             instruments.ToList(),
-            i => SubscriptionKey(MarketDataResponseType.OPEN_INTEREST, i.Figi, i.Uid),
+            i => SubscriptionKey(MarketDataResponseType.OPEN_INTEREST, i),
             (s, batch, ct) => s.SubscribeOpenInterestAsync(batch, ct),
             cancellationToken,
             onOpenInterest == null ? null : (s, batch) => RegisterLocalHandler(MarketDataResponseType.OPEN_INTEREST, s, batch, onOpenInterest));
@@ -254,7 +253,7 @@ public class MarketDataStreamManager
     public Task UnsubscribeOpenInterestAsync(IEnumerable<MarketDataInstrument> instruments, CancellationToken cancellationToken = default)
         => RouteUnsubscribeAsync(
             instruments.ToList(),
-            i => SubscriptionKey(MarketDataResponseType.OPEN_INTEREST, i.Figi, i.Uid),
+            i => SubscriptionKey(MarketDataResponseType.OPEN_INTEREST, i),
             (s, batch, ct) => s.UnsubscribeOpenInterestAsync(batch, ct),
             cancellationToken,
             (s, batch) => UnregisterLocalHandler(MarketDataResponseType.OPEN_INTEREST, s, batch));
@@ -446,9 +445,15 @@ public class MarketDataStreamManager
         });
     }
 
-    private static string SubscriptionKey(MarketDataResponseType responseType, string? figi, string? instrumentId)
+    private static string SubscriptionKey(MarketDataResponseType responseType, MarketDataInstrument instrument)
     {
-        return $"{responseType}:{figi}:{instrumentId}:";
+        var discriminator = responseType switch
+        {
+            MarketDataResponseType.CANDLE => instrument.Interval?.ToString() ?? string.Empty,
+            MarketDataResponseType.ORDER_BOOK => (instrument.OrderBook ?? OrderBookType.All).ToString(),
+            _ => string.Empty
+        };
+        return $"{responseType}:{instrument.Figi}:{instrument.Uid}:{discriminator}";
     }
 
     /// <summary>
@@ -586,9 +591,6 @@ public class MarketDataStreamManager
                 _logger?.LogWarning(ex, "Ошибка при освобождении стрима");
             }
         }
-
-        _terminationCts.Cancel();
-        _terminationCts.Dispose();
     }
 
     record TickerClassCode(string Ticker, string ClassCode)

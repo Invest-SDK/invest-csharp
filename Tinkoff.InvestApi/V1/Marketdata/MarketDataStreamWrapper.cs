@@ -363,7 +363,13 @@ public class MarketDataStreamWrapper
 
     private static string GetSubscriptionKey(MarketDataResponseType responseType, MarketDataInstrument instrument)
     {
-        return $"{responseType}:{instrument.Figi}:{instrument.Uid}";
+        var discriminator = responseType switch
+        {
+            MarketDataResponseType.CANDLE => instrument.Interval?.ToString() ?? string.Empty,
+            MarketDataResponseType.ORDER_BOOK => (instrument.OrderBook ?? OrderBookType.All).ToString(),
+            _ => string.Empty
+        };
+        return $"{responseType}:{instrument.Figi}:{instrument.Uid}:{discriminator}";
     }
 
     private static MarketDataResponseType GetResponseTypeFromRequest(SubscriptionRequestBase request)

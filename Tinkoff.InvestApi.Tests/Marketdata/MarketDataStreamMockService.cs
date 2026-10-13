@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -64,6 +65,18 @@ public class MarketDataStreamMockService : MarketDataStreamService.MarketDataStr
 
     private static int _tradingStatusPushed;
 
+    /// <summary>
+    /// Записи входящих запросов на подписку/отписку свечей по каждому стриму.
+    /// StreamSeq — номер server-инвокации MarketDataStream (порядковый, по одному на стрим клиента);
+    /// используется тестами для проверки маршрутизации между стримами пула.
+    /// </summary>
+    public static readonly ConcurrentBag<(int StreamSeq, SubscriptionAction Action, string Figi, SubscriptionInterval Interval)> CandleRequests = new();
+
+    /// <summary>
+    /// Порядковый номер стрима, инкрементируется на каждую server-инвокацию MarketDataStream.
+    /// </summary>
+    private static int _streamSeq;
+
     public MarketDataStreamMockService(ILogger<MarketDataStreamMockService> logger)
     {
         _logger = logger;
@@ -83,6 +96,8 @@ public class MarketDataStreamMockService : MarketDataStreamService.MarketDataStr
         OrderBookPushType = OrderBookType.Exchange;
         TradingStatusPushDelayMs = 0;
         Interlocked.Exchange(ref _tradingStatusPushed, 0);
+        Interlocked.Exchange(ref _streamSeq, 0);
+        CandleRequests.Clear();
     }
 
     public override async Task MarketDataStream(
@@ -90,12 +105,21 @@ public class MarketDataStreamMockService : MarketDataStreamService.MarketDataStr
         IServerStreamWriter<MarketDataResponse> responseStream,
         ServerCallContext context)
     {
+        var streamSeq = Interlocked.Increment(ref _streamSeq);
         try
         {
             while (await requestStream.MoveNext(context.CancellationToken))
             {
                 var request = requestStream.Current;
                 _logger.LogDebug("Mock received request: {Request}", Describe(request));
+
+                if (request.SubscribeCandlesRequest != null)
+                {
+                    foreach (var i in request.SubscribeCandlesRequest.Instruments)
+                    {
+                        CandleRequests.Add((streamSeq, request.SubscribeCandlesRequest.SubscriptionAction, i.Figi, i.Interval));
+                    }
+                }
 
                 if (request.SubscribeTradesRequest != null)
                 {

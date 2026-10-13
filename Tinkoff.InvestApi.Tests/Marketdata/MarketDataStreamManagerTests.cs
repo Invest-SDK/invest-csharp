@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading.Tasks;
 using Grpc.Net.Client;
 using Tinkoff.InvestApi.Stream;
@@ -133,6 +134,76 @@ public class MarketDataStreamManagerTests
             _output.WriteLine($"[{nameof(TestSubscribeCandlesWithDifferentIntervalsForSameInstrument)}] Полученные интервалы: [{string.Join(", ", candlesReceived)}]");
             candlesReceived.Should().BeEquivalentTo(
                 new[] { SubscriptionInterval.OneMinute, SubscriptionInterval.FiveMinutes });
+        }
+        finally
+        {
+            await manager.DisposeAsync();
+        }
+    }
+
+    [Fact]
+    public async Task TestActiveSubscriptionCountCollidesForDifferentIntervalsOfSameInstrument()
+    {
+        _output.WriteLine($"[{nameof(TestActiveSubscriptionCountCollidesForDifferentIntervalsOfSameInstrument)}] Начало теста");
+        MarketDataStreamMockService.Reset();
+
+        // Оба интервала попадают на один стрим (ёмкость по умолчанию 8), поэтому коллизия
+        // проявляется в учёте активных подписок: ключ _activeSubscriptions строится без интервала.
+        var (manager, _) = await CreateStartedManagerAsync();
+        try
+        {
+            var oneMinute = NewInstrument(figi: "FIGI_A", uid: "UID_A", interval: SubscriptionInterval.OneMinute);
+            var fiveMinutes = NewInstrument(figi: "FIGI_A", uid: "UID_A", interval: SubscriptionInterval.FiveMinutes);
+
+            _output.WriteLine($"[{nameof(TestActiveSubscriptionCountCollidesForDifferentIntervalsOfSameInstrument)}] Подписка на свечи: 1m и 5m одного инструмента");
+            await manager.SubscribeCandlesAsync(new[] { oneMinute });
+            await manager.SubscribeCandlesAsync(new[] { fiveMinutes });
+
+            // Подписки на один инструмент с разными интервалами — две отдельные подписки,
+            // поэтому суммарный счётчик должен быть 2.
+            _output.WriteLine($"[{nameof(TestActiveSubscriptionCountCollidesForDifferentIntervalsOfSameInstrument)}] TotalSubscriptionCount={manager.TotalSubscriptionCount} (ожидаем 2)");
+            manager.TotalSubscriptionCount.Should().Be(2);
+        }
+        finally
+        {
+            await manager.DisposeAsync();
+        }
+    }
+
+    [Fact]
+    public async Task TestUnsubscribeCandlesRoutedToWrongStreamForDifferentIntervalsOfSameInstrument()
+    {
+        _output.WriteLine($"[{nameof(TestUnsubscribeCandlesRoutedToWrongStreamForDifferentIntervalsOfSameInstrument)}] Начало теста");
+        MarketDataStreamMockService.Reset();
+        // Пуши свечей не нужны — наблюдаем только маршрутизацию запросов.
+        MarketDataStreamMockService.PushCandlesAfterSubscribe = false;
+
+        // Ёмкость 1 на стрим: подписки 1m и 5m одного инструмента размещаются на разных стримах.
+        var (manager, _) = await CreateStartedManagerAsync(maxSubscriptionsPerStream: 1, maxStreams: 2);
+        try
+        {
+            var oneMinute = NewInstrument(figi: "FIGI_A", uid: "UID_A", interval: SubscriptionInterval.OneMinute);
+            var fiveMinutes = NewInstrument(figi: "FIGI_A", uid: "UID_A", interval: SubscriptionInterval.FiveMinutes);
+
+            _output.WriteLine($"[{nameof(TestUnsubscribeCandlesRoutedToWrongStreamForDifferentIntervalsOfSameInstrument)}] Подписка на свечи: 1m и 5m одного инструмента");
+            await manager.SubscribeCandlesAsync(new[] { oneMinute });
+            await manager.SubscribeCandlesAsync(new[] { fiveMinutes });
+
+            var streamOfOneMinute = MarketDataStreamMockService.CandleRequests
+                .Single(r => r.Action == SubscriptionAction.Subscribe && r.Interval == SubscriptionInterval.OneMinute).StreamSeq;
+            var streamOfFiveMinutes = MarketDataStreamMockService.CandleRequests
+                .Single(r => r.Action == SubscriptionAction.Subscribe && r.Interval == SubscriptionInterval.FiveMinutes).StreamSeq;
+            _output.WriteLine($"[{nameof(TestUnsubscribeCandlesRoutedToWrongStreamForDifferentIntervalsOfSameInstrument)}] 1m на стриме {streamOfOneMinute}, 5m на стриме {streamOfFiveMinutes}");
+            streamOfFiveMinutes.Should().NotBe(streamOfOneMinute, "1m и 5m должны разместиться на разных стримах при ёмкости 1");
+
+            // Отписка по 1m должна уйти на стрим, удерживающий подписку 1m.
+            _output.WriteLine($"[{nameof(TestUnsubscribeCandlesRoutedToWrongStreamForDifferentIntervalsOfSameInstrument)}] Отписка от 1m");
+            await manager.UnsubscribeCandlesAsync(new[] { oneMinute });
+
+            var unsubscribe = MarketDataStreamMockService.CandleRequests
+                .Single(r => r.Action == SubscriptionAction.Unsubscribe);
+            _output.WriteLine($"[{nameof(TestUnsubscribeCandlesRoutedToWrongStreamForDifferentIntervalsOfSameInstrument)}] Отписка пришла на стрим {unsubscribe.StreamSeq} (ожидаем {streamOfOneMinute})");
+            unsubscribe.StreamSeq.Should().Be(streamOfOneMinute, "отписка по 1m должна уйти на стрим с 1m, а не на стрим с 5m");
         }
         finally
         {
