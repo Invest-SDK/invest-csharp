@@ -14,15 +14,6 @@ namespace Tinkoff.InvestApi.V1.Marketdata;
 /// </summary>
 public class MarketDataStreamWrapper
 {
-    private static readonly Type[] validTypes =
-        [
-            typeof(CandleSubscriptionRequest),
-            typeof(OrderBookSubscriptionRequest),
-            typeof(TradeSubscriptionRequest),
-            typeof(LastPriceSubscriptionRequest),
-            typeof(OpenInterestSubscriptionRequest),
-            typeof(TradingStatusesSubscriptionRequest)
-        ];
     private readonly ILogger<MarketDataStreamWrapper>? _logger;
     private readonly ConcurrentQueue<SubscriptionRequestBase> _subscriptionRequests = new();
     private readonly ConcurrentDictionary<string, ActiveSubscription> _activeSubscriptions = new();
@@ -64,7 +55,7 @@ public class MarketDataStreamWrapper
     public async Task SubscribeCandlesAsync(IEnumerable<MarketDataInstrument> instruments, CancellationToken cancellationToken = default)
     {
         var request = new CandleSubscriptionRequest(SubscriptionAction.Subscribe, instruments);
-        await AddSubscriptionAsync(request, cancellationToken);
+        await SendSubscriptionAsync(request, cancellationToken);
     }
 
     /// <summary>
@@ -73,7 +64,7 @@ public class MarketDataStreamWrapper
     public async Task UnsubscribeCandlesAsync(IEnumerable<MarketDataInstrument> instruments, CancellationToken cancellationToken = default)
     {
         var request = new CandleSubscriptionRequest(SubscriptionAction.Unsubscribe, instruments);
-        await RemoveSubscriptionAsync(request, cancellationToken);
+        await SendSubscriptionAsync(request, cancellationToken);
     }
 
     /// <summary>
@@ -82,7 +73,7 @@ public class MarketDataStreamWrapper
     public async Task SubscribeOrderBookAsync(IEnumerable<MarketDataInstrument> instruments, CancellationToken cancellationToken = default)
     {
         var request = new OrderBookSubscriptionRequest(SubscriptionAction.Subscribe, instruments);
-        await AddSubscriptionAsync(request, cancellationToken);
+        await SendSubscriptionAsync(request, cancellationToken);
     }
 
     /// <summary>
@@ -91,7 +82,7 @@ public class MarketDataStreamWrapper
     public async Task UnsubscribeOrderBookAsync(IEnumerable<MarketDataInstrument> instruments, CancellationToken cancellationToken = default)
     {
         var request = new OrderBookSubscriptionRequest(SubscriptionAction.Unsubscribe, instruments);
-        await RemoveSubscriptionAsync(request, cancellationToken);
+        await SendSubscriptionAsync(request, cancellationToken);
     }
 
     /// <summary>
@@ -100,7 +91,7 @@ public class MarketDataStreamWrapper
     public async Task SubscribeTradesAsync(IEnumerable<MarketDataInstrument> instruments, CancellationToken cancellationToken = default)
     {
         var request = new TradeSubscriptionRequest(SubscriptionAction.Subscribe, instruments);
-        await AddSubscriptionAsync(request, cancellationToken);
+        await SendSubscriptionAsync(request, cancellationToken);
     }
 
     /// <summary>
@@ -109,7 +100,7 @@ public class MarketDataStreamWrapper
     public async Task UnsubscribeTradesAsync(IEnumerable<MarketDataInstrument> instruments, CancellationToken cancellationToken = default)
     {
         var request = new TradeSubscriptionRequest(SubscriptionAction.Unsubscribe, instruments);
-        await RemoveSubscriptionAsync(request, cancellationToken);
+        await SendSubscriptionAsync(request, cancellationToken);
     }
 
     /// <summary>
@@ -118,7 +109,7 @@ public class MarketDataStreamWrapper
     public async Task SubscribeTradingStatusesAsync(IEnumerable<MarketDataInstrument> instruments, CancellationToken cancellationToken = default)
     {
         var request = new TradingStatusesSubscriptionRequest(SubscriptionAction.Subscribe, instruments);
-        await AddSubscriptionAsync(request, cancellationToken);
+        await SendSubscriptionAsync(request, cancellationToken);
     }
 
     /// <summary>
@@ -127,7 +118,7 @@ public class MarketDataStreamWrapper
     public async Task UnsubscribeTradingStatusesAsync(IEnumerable<MarketDataInstrument> instruments, CancellationToken cancellationToken = default)
     {
         var request = new TradingStatusesSubscriptionRequest(SubscriptionAction.Unsubscribe, instruments);
-        await RemoveSubscriptionAsync(request, cancellationToken);
+        await SendSubscriptionAsync(request, cancellationToken);
     }
 
     /// <summary>
@@ -136,7 +127,7 @@ public class MarketDataStreamWrapper
     public async Task SubscribeLastPriceAsync(IEnumerable<MarketDataInstrument> instruments, CancellationToken cancellationToken = default)
     {
         var request = new LastPriceSubscriptionRequest(SubscriptionAction.Subscribe, instruments);
-        await AddSubscriptionAsync(request, cancellationToken);
+        await SendSubscriptionAsync(request, cancellationToken);
     }
 
     /// <summary>
@@ -145,7 +136,7 @@ public class MarketDataStreamWrapper
     public async Task UnsubscribeLastPriceAsync(IEnumerable<MarketDataInstrument> instruments, CancellationToken cancellationToken = default)
     {
         var request = new LastPriceSubscriptionRequest(SubscriptionAction.Unsubscribe, instruments);
-        await RemoveSubscriptionAsync(request, cancellationToken);
+        await SendSubscriptionAsync(request, cancellationToken);
     }
 
     /// <summary>
@@ -154,7 +145,7 @@ public class MarketDataStreamWrapper
     public async Task SubscribeOpenInterestAsync(IEnumerable<MarketDataInstrument> instruments, CancellationToken cancellationToken = default)
     {
         var request = new OpenInterestSubscriptionRequest(SubscriptionAction.Subscribe, instruments);
-        await AddSubscriptionAsync(request, cancellationToken);
+        await SendSubscriptionAsync(request, cancellationToken);
     }
 
     /// <summary>
@@ -163,7 +154,7 @@ public class MarketDataStreamWrapper
     public async Task UnsubscribeOpenInterestAsync(IEnumerable<MarketDataInstrument> instruments, CancellationToken cancellationToken = default)
     {
         var request = new OpenInterestSubscriptionRequest(SubscriptionAction.Unsubscribe, instruments);
-        await RemoveSubscriptionAsync(request, cancellationToken);
+        await SendSubscriptionAsync(request, cancellationToken);
     }
 
     /// <summary>
@@ -204,13 +195,13 @@ public class MarketDataStreamWrapper
 
     public Guid Guid => _streamWrapper.StreamGuid;
 
-    private async Task AddSubscriptionAsync(SubscriptionRequestBase request, CancellationToken cancellationToken)
+    private async Task SendSubscriptionAsync(SubscriptionRequestBase request, CancellationToken cancellationToken)
     {
         _subscriptionRequests.Enqueue(request);
 
         // Создаём ключи для всех инструментов в запросе
         var responseType = GetResponseTypeFromRequest(request);
-        var instruments = GetInstrumentsFromRequest(request);
+        var instruments = request.Instruments;
 
         // Создаём TaskCompletionSource для каждого инструмента и захватываем задачи локально:
         // обработчик ответа удаляет записи из _pendingSubscriptions, поэтому перечитывать их нельзя.
@@ -219,7 +210,7 @@ public class MarketDataStreamWrapper
         var pending = new List<(string Key, Task<MarketDataSubscriptionResult> Task)>();
         foreach (var i in instruments)
         {
-            var key = GetSubscriptionKey(responseType, i);
+            var key = SubscriptionKeyBuilder.Build(responseType, i);
             var tcs = new TaskCompletionSource<MarketDataSubscriptionResult>(TaskCreationOptions.RunContinuationsAsynchronously);
             _pendingSubscriptions.TryAdd(new PendingSubscriptionKey(responseType, i), tcs);
             pending.Add((key, tcs.Task));
@@ -231,51 +222,12 @@ public class MarketDataStreamWrapper
         await _connectionHandlerLock.WaitAsync(cancellationToken);
         _connectionHandlerLock.Release();
 
-        // Дожидаемся ответа для всех инструментов и проверяем, что подписки успешны
         foreach (var (key, task) in pending)
         {
             var result = await task;
-            if (result.SubscriptionStatusDictionary.Values.Any(s => s != MarketDataSubscriptionStatus.OK))
+            if (true.Equals(result.SubscriptionStatusDictionary?.Values.Any(s => s != MarketDataSubscriptionStatus.OK)))
             {
-                throw new InvalidOperationException($"Subscription failed for {key}");
-            }
-        }
-    }
-
-    private async Task RemoveSubscriptionAsync(SubscriptionRequestBase request, CancellationToken cancellationToken)
-    {
-        _subscriptionRequests.Enqueue(request);
-
-        // Создаём ключи для всех инструментов в запросе
-        var responseType = GetResponseTypeFromRequest(request);
-        var instruments = GetInstrumentsFromRequest(request);
-
-        // Создаём TaskCompletionSource для каждого инструмента и захватываем задачи локально:
-        // обработчик ответа удаляет записи из _pendingSubscriptions, поэтому перечитывать их нельзя.
-        // Ключ — обёртка с responseType и инструментом: Equals сопоставляет по указанным полям,
-        // поэтому ответ с полным инструментом находит ожидание даже при неполном запросе.
-        var pending = new List<(string Key, Task<MarketDataSubscriptionResult> Task)>();
-        foreach (var i in instruments)
-        {
-            var key = GetSubscriptionKey(responseType, i);
-            var tcs = new TaskCompletionSource<MarketDataSubscriptionResult>(TaskCreationOptions.RunContinuationsAsynchronously);
-            _pendingSubscriptions.TryAdd(new PendingSubscriptionKey(responseType, i), tcs);
-            pending.Add((key, tcs.Task));
-        }
-
-        await _streamWrapper.CallAsync(request.ToMarketDataRequest(), cancellationToken);
-
-        // Ждём завершения HandleConnectionAsync перед продолжением
-        await _connectionHandlerLock.WaitAsync(cancellationToken);
-        _connectionHandlerLock.Release();
-
-        // Дожидаемся ответа для всех инструментов и проверяем, что отписки успешны
-        foreach (var (key, task) in pending)
-        {
-            var result = await task;
-            if (result.SubscriptionStatusDictionary.Values.Any(s => s != MarketDataSubscriptionStatus.OK))
-            {
-                throw new InvalidOperationException($"Unsubscription failed for {key}");
+                throw new InvalidOperationException(request.Action == SubscriptionAction.Subscribe ? "Subscription" : "Unsubscription" + $" failed for {key}");
             }
         }
     }
@@ -325,7 +277,7 @@ public class MarketDataStreamWrapper
                     tcs.TrySetResult(subscriptionResult);
                 }
 
-                var key = GetSubscriptionKey(subscriptionResult.ResponseType, kvp.Key);
+                var key = SubscriptionKeyBuilder.Build(subscriptionResult.ResponseType, kvp.Key);
 
                 // Обновляем активные подписки
                 if (subscriptionResult.Action == MarketDataAction.SUBSCRIBE &&
@@ -343,7 +295,7 @@ public class MarketDataStreamWrapper
 
         if (response.Candle != null && response.Candle.IsInitialized())
         {
-            var key = GetSubscriptionKey(MarketDataResponseType.CANDLE, new MarketDataInstrument(
+            var key = SubscriptionKeyBuilder.Build(MarketDataResponseType.CANDLE, new MarketDataInstrument(
                 Figi: response.Candle.Figi,
                 Uid: response.Candle.InstrumentUid,
                 Interval: response.Candle.Interval
@@ -361,17 +313,6 @@ public class MarketDataStreamWrapper
         }
     }
 
-    private static string GetSubscriptionKey(MarketDataResponseType responseType, MarketDataInstrument instrument)
-    {
-        var discriminator = responseType switch
-        {
-            MarketDataResponseType.CANDLE => instrument.Interval?.ToString() ?? string.Empty,
-            MarketDataResponseType.ORDER_BOOK => (instrument.OrderBook ?? OrderBookType.All).ToString(),
-            _ => string.Empty
-        };
-        return $"{responseType}:{instrument.Figi}:{instrument.Uid}:{discriminator}";
-    }
-
     private static MarketDataResponseType GetResponseTypeFromRequest(SubscriptionRequestBase request)
     {
         return request switch
@@ -384,15 +325,6 @@ public class MarketDataStreamWrapper
             TradingStatusesSubscriptionRequest => MarketDataResponseType.TRADING_STATUS,
             _ => throw new ArgumentOutOfRangeException(nameof(request), request.GetType(), "Unknown subscription request type")
         };
-    }
-
-    private static List<MarketDataInstrument> GetInstrumentsFromRequest(SubscriptionRequestBase request)
-    {
-        if (validTypes.Contains(request.GetType()))
-        {
-            return [.. request.Instruments];
-        }
-        throw new ArgumentOutOfRangeException(nameof(request), request.GetType(), "Unknown subscription request type");
     }
 
     /// <summary>
