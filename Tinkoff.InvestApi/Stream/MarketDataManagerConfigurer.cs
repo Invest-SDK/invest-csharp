@@ -6,10 +6,17 @@ namespace Tinkoff.InvestApi.Stream;
 /// <summary>
 /// Конфигуратор для "MarketDataStreamManager"
 /// </summary>
-/// <param name="client">Клиент для создания соединения</param>
-public class MarketDataManagerConfigurer(MarketDataStreamService.MarketDataStreamServiceClient client) 
-: ResilienceDuplexStreamConfigurer<MarketDataStreamService.MarketDataStreamServiceClient, MarketDataRequest, MarketDataResponse>(client, (c, options) => c.MarketDataStream(options))
+/// <param name="callInvoker">Соединение, из которого строятся стрим- и unary-клиенты</param>
+public class MarketDataManagerConfigurer(CallInvoker callInvoker)
+: ResilienceDuplexStreamConfigurer<MarketDataStreamService.MarketDataStreamServiceClient, MarketDataRequest, MarketDataResponse>(new MarketDataStreamService.MarketDataStreamServiceClient(callInvoker), (c, options) => c.MarketDataStream(options))
 {
+    /// <summary>
+    /// Клиент unary MarketData, используемый менеджером для восстановления
+    /// пропущенных свечей при переподключении стрима. Строится из того же соединения,
+    /// что и стрим-клиент, поэтому пользователю не нужно внедрять его отдельно.
+    /// </summary>
+    public MarketDataService.MarketDataServiceClient MarketData { get; } = new(callInvoker);
+
     public int MaxSubscriptionsPerStream { get; set; } = 300;
     public int MaxStreams { get; set; } = 16;
 

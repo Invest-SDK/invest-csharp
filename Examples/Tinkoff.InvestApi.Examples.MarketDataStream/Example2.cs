@@ -13,7 +13,7 @@ public class Example2(ILogger<Example2> logger, InvestApiClient investClient)
 
     public async Task Run()
     {
-        var configurer = new MarketDataManagerConfigurer(investClient.MarketDataStream)
+        var configurer = new MarketDataManagerConfigurer(investClient.RetriableInvoker)
             .WithPingDelayMs(1000)
             .WithInactivityTimeoutMs(10000)
             .WithMaxSubscriptionsPerStream(20);
@@ -22,7 +22,7 @@ public class Example2(ILogger<Example2> logger, InvestApiClient investClient)
             builder.AddConsole();
             builder.SetMinimumLevel(LogLevel.Trace);
         });
-        var manager = new MarketDataStreamManager(configurer, investClient.MarketData, loggerFactory);
+        var manager = new MarketDataStreamManager(configurer, loggerFactory);
 
         var instruments = investClient.Instruments.Shares().Instruments
         .Where(x => x.ApiTradeAvailableFlag && x.TradingStatus == SecurityTradingStatus.NormalTrading)

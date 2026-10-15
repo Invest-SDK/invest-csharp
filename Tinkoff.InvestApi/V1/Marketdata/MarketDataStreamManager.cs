@@ -30,13 +30,12 @@ public class MarketDataStreamManager
 
     public MarketDataStreamManager(
         MarketDataManagerConfigurer configurer,
-        MarketDataService.MarketDataServiceClient client,
         ILoggerFactory? loggerFactory = null)
     {
         _configurer = configurer;
         _maxSubscriptionsPerStream = configurer.MaxSubscriptionsPerStream;
         _maxStreams = configurer.MaxStreams;
-        _client = client;
+        _client = configurer.MarketData;
         _loggerFactory = loggerFactory;
         _logger = loggerFactory?.CreateLogger<MarketDataStreamManager>();
     }

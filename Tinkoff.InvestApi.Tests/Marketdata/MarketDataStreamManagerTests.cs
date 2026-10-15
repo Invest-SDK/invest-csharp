@@ -385,11 +385,8 @@ public class MarketDataStreamManagerTests
         int maxStreams = 2)
     {
         var channel = _fixture.CreateChannel();
-        var streamClient = new MarketDataStreamService.MarketDataStreamServiceClient(channel);
-        var marketDataClient = new MarketDataService.MarketDataServiceClient(channel);
 
-        var configurer = new MarketDataManagerConfigurer(
-            streamClient)
+        var configurer = new MarketDataManagerConfigurer(channel.CreateCallInvoker())
             .WithMaxSubscriptionsPerStream(maxSubscriptionsPerStream)
             .WithMaxStreams(maxStreams)
             .WithConnectTimeoutMs(5000)
@@ -397,7 +394,7 @@ public class MarketDataStreamManagerTests
             .WithInactivityTimeoutMs(5000)
             .WithBackOffDelayMs(100);
 
-        var manager = new MarketDataStreamManager(configurer, marketDataClient);
+        var manager = new MarketDataStreamManager(configurer);
         await manager.StartAsync();
         return (manager, channel);
     }
