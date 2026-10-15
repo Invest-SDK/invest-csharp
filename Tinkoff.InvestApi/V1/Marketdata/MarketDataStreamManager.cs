@@ -1,7 +1,5 @@
 using System.Collections.Concurrent;
-using Google.Protobuf;
 using Microsoft.Extensions.Logging;
-using Tinkoff.InvestApi.V1.Marketdata.Models.Request;
 using Tinkoff.InvestApi.V1.Marketdata.Models.Response;
 using Tinkoff.InvestApi.V1;
 using Tinkoff.InvestApi.V1.Marketdata;

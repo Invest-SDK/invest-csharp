@@ -1,4 +1,4 @@
-﻿﻿using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Tinkoff.InvestApi.Examples.MarketDataStream;
@@ -14,6 +14,13 @@ builder.Logging.AddConsole();
 builder.Services.AddInvestApiClient((_, settings) =>
 {
     settings.AccessToken = token;
+});
+
+builder.Services.AddMarketDataStreamManager(configurer =>
+{
+    configurer.WithPingDelayMs(1000)
+        .WithInactivityTimeoutMs(10000)
+        .WithMaxSubscriptionsPerStream(20);
 });
 
 builder.Services.AddTransient<Example1>();
