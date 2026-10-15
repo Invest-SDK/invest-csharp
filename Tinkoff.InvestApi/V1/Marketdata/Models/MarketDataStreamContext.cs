@@ -110,36 +110,6 @@ public class MarketDataStreamContext
         _tradingStatuses.ClearLocal();
     }
 
-    /// <summary>
-    /// Асинхронно читает следующую свечу из общего канала.
-    /// </summary>
-    public ValueTask<CandleModel> GetCandlesAsync(CancellationToken cancellationToken = default) => _candles.ReadAsync(cancellationToken);
-
-    /// <summary>
-    /// Асинхронно читает следующую сделку из общего канала.
-    /// </summary>
-    public ValueTask<TradeModel> GetTradesAsync(CancellationToken cancellationToken = default) => _trades.ReadAsync(cancellationToken);
-
-    /// <summary>
-    /// Асинхронно читает следующий стакан из общего канала.
-    /// </summary>
-    public ValueTask<OrderBookModel> GetOrderBooksAsync(CancellationToken cancellationToken = default) => _orderBooks.ReadAsync(cancellationToken);
-
-    /// <summary>
-    /// Асинхронно читает следующую цену последней сделки из общего канала.
-    /// </summary>
-    public ValueTask<LastPriceModel> GetLastPricesAsync(CancellationToken cancellationToken = default) => _lastPrices.ReadAsync(cancellationToken);
-
-    /// <summary>
-    /// Асинхронно читает следующее значение открытых позиций из общего канала.
-    /// </summary>
-    public ValueTask<OpenInterestModel> GetOpenInterestsAsync(CancellationToken cancellationToken = default) => _openInterests.ReadAsync(cancellationToken);
-
-    /// <summary>
-    /// Асинхронно читает следующий статус торговли из общего канала.
-    /// </summary>
-    public ValueTask<TradingStatusModel> GetTradingStatusesAsync(CancellationToken cancellationToken = default) => _tradingStatuses.ReadAsync(cancellationToken);
-
     internal Task PushCandleAsync(CandleModel wrapper, Guid? streamGuid = null) => _candles.PushAsync(wrapper, streamGuid);
 
     internal Task PushTradeAsync(TradeModel wrapper, Guid? streamGuid = null) => _trades.PushAsync(wrapper, streamGuid);
