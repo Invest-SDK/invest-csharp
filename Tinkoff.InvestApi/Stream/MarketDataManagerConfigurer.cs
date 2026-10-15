@@ -12,8 +12,7 @@ public class MarketDataManagerConfigurer(CallInvoker callInvoker)
 {
     /// <summary>
     /// Клиент unary MarketData, используемый менеджером для восстановления
-    /// пропущенных свечей при переподключении стрима. Строится из того же соединения,
-    /// что и стрим-клиент, поэтому пользователю не нужно внедрять его отдельно.
+    /// пропущенных свечей при переподключении стрима. Строится из того же соединения.
     /// </summary>
     public MarketDataService.MarketDataServiceClient MarketData { get; } = new(callInvoker);
 
