@@ -5,7 +5,7 @@ namespace Tinkoff.InvestApi.Stream;
 /// <summary>
 /// Конфигуратор для server-side stream-соединения
 /// </summary>
-public class ResilenceServerSideStreamConfigurer<TClient, TRequest, TResponse>(TClient client, Func<TClient, TRequest, CallOptions, AsyncServerStreamingCall<TResponse>> callMethod) : StreamConfigurer<TClient, TRequest, TResponse>(client)
+public class ResilienceServerSideStreamConfigurer<TClient, TRequest, TResponse>(TClient client, Func<TClient, TRequest, CallOptions, AsyncServerStreamingCall<TResponse>> callMethod) : StreamConfigurer<TClient, TRequest, TResponse>(client)
 where TRequest : class
 where TResponse : class
 {
@@ -14,39 +14,39 @@ where TResponse : class
     /// </summary>
     public Func<TClient, TRequest, CallOptions, AsyncServerStreamingCall<TResponse>> CallMethod { get; set; } = callMethod;
 
-    public ResilenceServerSideStreamConfigurer<TClient, TRequest, TResponse> WithCallMethod(Func<TClient, TRequest, CallOptions, AsyncServerStreamingCall<TResponse>> callMethod)
+    public ResilienceServerSideStreamConfigurer<TClient, TRequest, TResponse> WithCallMethod(Func<TClient, TRequest, CallOptions, AsyncServerStreamingCall<TResponse>> callMethod)
     {
         CallMethod = callMethod;
         return this;
     }
 
-    public ResilenceServerSideStreamConfigurer<TClient, TRequest, TResponse> WithCallOptions(CallOptions callOptions)
+    public ResilienceServerSideStreamConfigurer<TClient, TRequest, TResponse> WithCallOptions(CallOptions callOptions)
     {
         CallOptions = callOptions;
         return this;
     }
 
-    public ResilenceServerSideStreamConfigurer<TClient, TRequest, TResponse> WithBackOffDelayMs(int backOffDelayMs)
+    public ResilienceServerSideStreamConfigurer<TClient, TRequest, TResponse> WithBackOffDelayMs(int backOffDelayMs)
     {
         BackOffDelayMs = backOffDelayMs;
         return this;
     }
 
-    public ResilenceServerSideStreamConfigurer<TClient, TRequest, TResponse> WithPingDelayMs(int pingDelayMs)
+    public ResilienceServerSideStreamConfigurer<TClient, TRequest, TResponse> WithPingDelayMs(int pingDelayMs)
     {
         PingDelayMs = pingDelayMs;
         return this;
     }
 
-    public ResilenceServerSideStreamConfigurer<TClient, TRequest, TResponse> WithInactivityTimeoutMs(long inactivityTimeoutMs)
+    public ResilienceServerSideStreamConfigurer<TClient, TRequest, TResponse> WithInactivityTimeoutMs(long inactivityTimeoutMs)
     {
         InactivityTimeoutMs = inactivityTimeoutMs;
         return this;
     }
 
-    public ResilenceServerSideStreamConfigurer<TClient, TRequest, TResponse> WithMaxRetryAttampt(int maxRetryAttampt)
+    public ResilienceServerSideStreamConfigurer<TClient, TRequest, TResponse> WithMaxRetryAttempt(int maxRetryAttempt)
     {
-        MaxRetryAttampt = maxRetryAttampt;
+        MaxRetryAttempt = maxRetryAttempt;
         return this;
     }
 }

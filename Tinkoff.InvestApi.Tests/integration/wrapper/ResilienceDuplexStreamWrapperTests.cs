@@ -8,13 +8,13 @@ using Xunit.Abstractions;
 namespace Tinkoff.InvestApi.Tests.Integration.Wrapper;
 
 [Collection("GrpcIntegration")]
-public class ResilenceDuplexStreamWrapperTests : IAsyncLifetime
+public class ResilienceDuplexStreamWrapperTests : IAsyncLifetime
 {
     private readonly ITestOutputHelper _output;
     private readonly GrpcTestServerFixture _fixture;
     private readonly ConcurrentBag<string> _receivedMessages;
 
-    public ResilenceDuplexStreamWrapperTests(GrpcTestServerFixture fixture, ITestOutputHelper output)
+    public ResilienceDuplexStreamWrapperTests(GrpcTestServerFixture fixture, ITestOutputHelper output)
     {
         _fixture = fixture;
         _output = output;
@@ -55,12 +55,12 @@ public class ResilenceDuplexStreamWrapperTests : IAsyncLifetime
         var reconnectDetected = false;
         var channel = _fixture.CreateChannel();
         var client = new TestStreamService.TestStreamServiceClient(channel);
-        var configurer = new ResilenceDuplexStreamConfigurer<TestStreamService.TestStreamServiceClient, SubscribeRequest, StreamMessage>(client, (c, co) => c.DuplexStream(co))
+        var configurer = new ResilienceDuplexStreamConfigurer<TestStreamService.TestStreamServiceClient, SubscribeRequest, StreamMessage>(client, (c, co) => c.DuplexStream(co))
         .WithInactivityTimeoutMs(inactivityTimeoutMs)
         .WithPingDelayMs(pingDelayMs)
         .WithBackOffDelayMs(100);
 
-        var wrapper = new ResilenceDuplexStreamWrapper<TestStreamService.TestStreamServiceClient, SubscribeRequest, StreamMessage>(
+        var wrapper = new ResilienceDuplexStreamWrapper<TestStreamService.TestStreamServiceClient, SubscribeRequest, StreamMessage>(
             configurer,
             messageHandler: response =>
             {
@@ -121,12 +121,12 @@ public class ResilenceDuplexStreamWrapperTests : IAsyncLifetime
         long connectionAttempts = 0;
         var channel = _fixture.CreateChannel();
         var client = new TestStreamService.TestStreamServiceClient(channel);
-        var configurer = new ResilenceDuplexStreamConfigurer<TestStreamService.TestStreamServiceClient, SubscribeRequest, StreamMessage>(client, (c, co) => c.DuplexStream(co))
+        var configurer = new ResilienceDuplexStreamConfigurer<TestStreamService.TestStreamServiceClient, SubscribeRequest, StreamMessage>(client, (c, co) => c.DuplexStream(co))
         .WithInactivityTimeoutMs(inactivityTimeoutMs)
         .WithPingDelayMs(pingDelayMs)
         .WithBackOffDelayMs(100);
 
-        var wrapper = new ResilenceDuplexStreamWrapper<TestStreamService.TestStreamServiceClient, SubscribeRequest, StreamMessage>(
+        var wrapper = new ResilienceDuplexStreamWrapper<TestStreamService.TestStreamServiceClient, SubscribeRequest, StreamMessage>(
             configurer,
             connectionHandler: stream =>
             {
@@ -204,12 +204,12 @@ public class ResilenceDuplexStreamWrapperTests : IAsyncLifetime
         {
             var channel = _fixture.CreateChannel();
             var client = new TestStreamService.TestStreamServiceClient(channel);
-            var configurer = new ResilenceDuplexStreamConfigurer<TestStreamService.TestStreamServiceClient, SubscribeRequest, StreamMessage>(client, (c, co) => c.DuplexStream(co))
+            var configurer = new ResilienceDuplexStreamConfigurer<TestStreamService.TestStreamServiceClient, SubscribeRequest, StreamMessage>(client, (c, co) => c.DuplexStream(co))
             .WithInactivityTimeoutMs(inactivityTimeoutMs)
             .WithPingDelayMs(pingDelayMs)
             .WithBackOffDelayMs(100);
 
-            var wrapper = new ResilenceDuplexStreamWrapper<TestStreamService.TestStreamServiceClient, SubscribeRequest, StreamMessage>(
+            var wrapper = new ResilienceDuplexStreamWrapper<TestStreamService.TestStreamServiceClient, SubscribeRequest, StreamMessage>(
                 configurer,
                 messageHandler: response =>
                 {
@@ -266,13 +266,13 @@ public class ResilenceDuplexStreamWrapperTests : IAsyncLifetime
         var reconnectAttempted = false;
         var channel = _fixture.CreateChannel();
         var client = new TestStreamService.TestStreamServiceClient(channel);
-        var configurer = new ResilenceDuplexStreamConfigurer<TestStreamService.TestStreamServiceClient, SubscribeRequest, StreamMessage>(client, (c, co) => c.DuplexStream(co))
+        var configurer = new ResilienceDuplexStreamConfigurer<TestStreamService.TestStreamServiceClient, SubscribeRequest, StreamMessage>(client, (c, co) => c.DuplexStream(co))
         .WithInactivityTimeoutMs(inactivityTimeoutMs)
         .WithPingDelayMs(pingDelayMs)
         .WithBackOffDelayMs(100)
-        .WithMaxRetryAttampt(3);
+        .WithMaxRetryAttempt(3);
 
-        var wrapper = new ResilenceDuplexStreamWrapper<TestStreamService.TestStreamServiceClient, SubscribeRequest, StreamMessage>(
+        var wrapper = new ResilienceDuplexStreamWrapper<TestStreamService.TestStreamServiceClient, SubscribeRequest, StreamMessage>(
             configurer,
             connectionHandler: stream =>
             {
@@ -314,26 +314,25 @@ public class ResilenceDuplexStreamWrapperTests : IAsyncLifetime
 
         wrapper.Disconnect();
         await callTask;
-        attempts.Should().Be(configurer.MaxRetryAttampt, "должно быть " + configurer.MaxRetryAttampt + " попыток переподключения");
+        attempts.Should().Be(configurer.MaxRetryAttempt, "должно быть " + configurer.MaxRetryAttempt + " попыток переподключения");
 
         Write($"[TEST] Total connections: {TestStreamServiceImpl.DuplexConnectionCount}");
     }
 
     [Fact]
-    public async Task CallAsync_ShouldThrowTimeoutException_WhenConnectAsyncWasNeverCalled()
+    public async Task CallAsync_ShouldNotThrowTimeoutException_WhenConnectAsyncWasNeverCalled()
     {
         var channel = _fixture.CreateChannel();
         var client = new TestStreamService.TestStreamServiceClient(channel);
-        var configurer = new ResilenceDuplexStreamConfigurer<TestStreamService.TestStreamServiceClient, SubscribeRequest, StreamMessage>(client, (c, co) => c.DuplexStream(co))
+        var configurer = new ResilienceDuplexStreamConfigurer<TestStreamService.TestStreamServiceClient, SubscribeRequest, StreamMessage>(client, (c, co) => c.DuplexStream(co))
         .WithConnectTimeoutMs(200);
 
-        var wrapper = new ResilenceDuplexStreamWrapper<TestStreamService.TestStreamServiceClient, SubscribeRequest, StreamMessage>(configurer);
+        var wrapper = new ResilienceDuplexStreamWrapper<TestStreamService.TestStreamServiceClient, SubscribeRequest, StreamMessage>(configurer);
 
         var request = new SubscribeRequest { SubscriptionId = Guid.NewGuid().ToString() };
 
         Func<Task> act = () => wrapper.CallAsync(request);
 
-        await act.Should().ThrowAsync<TimeoutException>(
-            "CallAsync не должен подключаться самостоятельно и должен упасть по таймауту, если ConnectAsync не был вызван");
+        await act.Should().NotThrowAsync<TimeoutException>("После запроса должно быть автоматически создано подключение");
     }
 }

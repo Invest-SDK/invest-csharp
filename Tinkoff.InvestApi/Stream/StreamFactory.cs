@@ -13,7 +13,7 @@ public class StreamFactory
     /// Создать двусторонний стрим (duplex).
     /// </summary>
     public static AsyncDuplexStreamingCall<TRequest, TResponse> CreateDuplexStream<TClient, TRequest, TResponse>(
-        ResilenceDuplexStreamConfigurer<TClient, TRequest, TResponse> streamConfigurer, 
+        ResilienceDuplexStreamConfigurer<TClient, TRequest, TResponse> streamConfigurer, 
         CancellationToken cancellationToken)
         where TRequest : class
         where TResponse : class
@@ -28,7 +28,7 @@ public class StreamFactory
     /// Создать односторонний стрим (server-side streaming).
     /// </summary>
     public static AsyncServerStreamingCall<TResponse> CreateServerSideStream<TClient, TRequest, TResponse>(
-        ResilenceServerSideStreamConfigurer<TClient, TRequest, TResponse> streamConfigurer,
+        ResilienceServerSideStreamConfigurer<TClient, TRequest, TResponse> streamConfigurer,
         TRequest request,
         CancellationToken cancellationToken)
         where TRequest : class
